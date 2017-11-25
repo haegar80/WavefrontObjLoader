@@ -153,6 +153,9 @@ void GLWidget::initShaders()
 		close();
 	}
 
+	m_shaderProgram->bindAttributeLocation("in_Position", 0);
+	m_shaderProgram->bindAttributeLocation("v_Color", 1);
+
 	if (!m_shaderProgram->link())
 	{
 		close();

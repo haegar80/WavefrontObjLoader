@@ -1,8 +1,6 @@
 #include "MapRenderer.h"
 #include "../ObjectLoader/ObjLoader.h"
 #include <sstream>
-#include <cmath>
-#include <qmessagebox.h>
 #include <QOpenGLWidget>
 #include <QtGui/QOpenGLShaderProgram>
 
@@ -115,14 +113,12 @@ void MapRenderer::renderMap(QOpenGLShaderProgram* p_shaderProgram)
 	constexpr int PositionSize = 3;
 
 	m_MapPositionArrayBuffer.bind();
-	int positionLocation = p_shaderProgram->attributeLocation("in_Position");
-	p_shaderProgram->enableAttributeArray(positionLocation);
-	p_shaderProgram->setAttributeBuffer(positionLocation, GL_FLOAT, 0, 3);
+	p_shaderProgram->enableAttributeArray(0);
+	p_shaderProgram->setAttributeBuffer(0, GL_FLOAT, 0, 3);
 
 	m_MapColorArrayBuffer.bind();
-	int colorLocation = p_shaderProgram->attributeLocation("v_Color");
-	p_shaderProgram->enableAttributeArray(colorLocation);
-	p_shaderProgram->setAttributeBuffer(colorLocation, GL_FLOAT, 0, 3);
+	p_shaderProgram->enableAttributeArray(1);
+	p_shaderProgram->setAttributeBuffer(1, GL_FLOAT, 0, 3);
 
 	glDrawArrays(GL_POLYGON, 0, 20);
 }
