@@ -43,7 +43,7 @@ void GLWidget::initializeGL()
 	initShaders();
 
 	m_mapRenderer = new MapRenderer(m_objLoader);
-	m_mapRenderer->init();
+	m_mapRenderer->init(m_shaderProgram);
 }
 
 void GLWidget::resizeGL(int w, int h)

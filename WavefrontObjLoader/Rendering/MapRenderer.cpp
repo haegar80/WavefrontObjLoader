@@ -9,6 +9,7 @@ MapRenderer::MapRenderer(const ObjLoader& pc_objLoader) :
 {
 	initializeOpenGLFunctions();
 
+	m_VertexArrayObject.create();
 	m_MapPositionArrayBuffer.create();
 	m_MapColorArrayBuffer.create();
 	m_BackgroundPositionArrayBuffer.create();
@@ -23,19 +24,21 @@ MapRenderer::~MapRenderer()
 }
 
 
-void MapRenderer::init()
+void MapRenderer::init(QOpenGLShaderProgram* p_shaderProgram)
 {
-	initMap();
+	QOpenGLVertexArrayObject::Binder vaoBinder(&m_VertexArrayObject);
+	initMap(p_shaderProgram);
 	initWavefrontModels();
 }
 
 void MapRenderer::render(QOpenGLShaderProgram* p_shaderProgram)
 {
+	QOpenGLVertexArrayObject::Binder vaoBinder(&m_VertexArrayObject);
 	renderWavefrontModels();
 	renderMap(p_shaderProgram);
 }
 
-void MapRenderer::initMap()
+void MapRenderer::initMap(QOpenGLShaderProgram* p_shaderProgram)
 {
 	float size = static_cast<float>(1000);
 
@@ -100,6 +103,16 @@ void MapRenderer::initMap()
 
 	m_MapColorArrayBuffer.bind();
 	m_MapColorArrayBuffer.allocate(vertexColors, 5 * sizeof(QVector3D));
+
+	m_MapPositionArrayBuffer.bind();
+	p_shaderProgram->enableAttributeArray(0);
+	p_shaderProgram->setAttributeBuffer(0, GL_FLOAT, 0, 3);
+	m_MapColorArrayBuffer.release();
+
+	m_MapColorArrayBuffer.bind();
+	p_shaderProgram->enableAttributeArray(1);
+	p_shaderProgram->setAttributeBuffer(1, GL_FLOAT, 0, 3);
+	m_MapColorArrayBuffer.release();
 }
 
 void MapRenderer::initWavefrontModels()
@@ -108,18 +121,6 @@ void MapRenderer::initWavefrontModels()
 
 void MapRenderer::renderMap(QOpenGLShaderProgram* p_shaderProgram)
 {
-	constexpr int PositionOffset = 0;
-	constexpr int ColorOffset = sizeof(QVector3D);
-	constexpr int PositionSize = 3;
-
-	m_MapPositionArrayBuffer.bind();
-	p_shaderProgram->enableAttributeArray(0);
-	p_shaderProgram->setAttributeBuffer(0, GL_FLOAT, 0, 3);
-
-	m_MapColorArrayBuffer.bind();
-	p_shaderProgram->enableAttributeArray(1);
-	p_shaderProgram->setAttributeBuffer(1, GL_FLOAT, 0, 3);
-
 	glDrawArrays(GL_POLYGON, 0, 20);
 }
 
