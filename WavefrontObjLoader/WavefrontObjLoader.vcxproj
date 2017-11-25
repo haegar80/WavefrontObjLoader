@@ -159,8 +159,6 @@
   <ItemGroup>
     <ClInclude Include="ObjectLoader\ObjLoader.h" />
     <ClInclude Include="Rendering\MapRenderer.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
     <ClInclude Include="UI\GLWidget.h" />
   </ItemGroup>
   <ItemGroup>
