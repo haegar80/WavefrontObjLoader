@@ -20,21 +20,16 @@ struct ObjTextureCoords
 
 struct ObjFace
 {
-	std::vector<long> Vertices;
-    std::vector<long> Normals;
-    std::vector<long> UVs;
+	std::vector<unsigned short> Vertices;
+    std::vector<unsigned short> Normals;
+    std::vector<unsigned short> UVs;
 	bool Valid;
 };
  
 class ObjLoader{
 public:
-        ObjLoader();
+        ObjLoader(int p_xWindowSize, int p_yWindowsSize);
         ~ObjLoader();
- 
-        long GetNumVertices() const;
-        long GetNumNormals() const;
-        long GetNumUVs() const;
-        long GetNumFaces() const;
  
 		std::vector<ObjVertexCoords> GetVertices() const {
 			return m_vertices;
@@ -53,17 +48,24 @@ public:
         void DumpOBJ(void);
  
 private:
-	ObjVertexCoords ReadObjVertexCoords(std::ifstream& p_file);
-        ObjTextureCoords ReadObjTextureCoords(std::ifstream& p_file);
-		ObjFace ReadObjFaceWithNormalsAndTexture(std::ifstream& p_file);
-		ObjFace ReadObjFaceWithNormals(std::ifstream& p_file);
-		ObjFace ReadObjFaceWithTexture(std::ifstream& p_file);
-		ObjFace ReadObjFace(std::ifstream& p_file);
+	int m_xWindowSize{ 0 };
+	int m_yWindowSize{ 0 };
+	float m_scaleFactor{ 0.0f };
+	bool m_scaleFactorDetermined{ false };
 
-		std::vector<ObjVertexCoords> m_vertices;
-        std::vector<ObjVertexCoords> m_normals;
-        std::vector<ObjTextureCoords> m_uvs;
-        std::vector<ObjFace> m_faces;
+	std::vector<ObjVertexCoords> m_vertices;
+	std::vector<ObjVertexCoords> m_normals;
+	std::vector<ObjTextureCoords> m_uvs;
+	std::vector<ObjFace> m_faces;
+
+	void DetermineScaleFactor(float xVertex, float yVertex);
+
+	ObjVertexCoords ReadObjVertexCoords(std::ifstream& p_file);
+    ObjTextureCoords ReadObjTextureCoords(std::ifstream& p_file);
+	ObjFace ReadObjFaceWithNormalsAndTexture(std::ifstream& p_file);
+	ObjFace ReadObjFaceWithNormals(std::ifstream& p_file);
+	ObjFace ReadObjFaceWithTexture(std::ifstream& p_file);
+	ObjFace ReadObjFace(std::ifstream& p_file);
 };
  
 #endif

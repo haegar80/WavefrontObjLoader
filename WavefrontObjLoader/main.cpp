@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 	const int cSize = 1000;
 
-	ObjLoader objLoader;
+	ObjLoader objLoader(cSize, cSize);
 	std::string fileNameTest = "Wavefront/building/building.obj";
 	objLoader.LoadOBJ(fileNameTest);
 

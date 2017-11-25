@@ -27,17 +27,20 @@ private:
 	};
 
 	const ObjLoader& mc_objLoader;
-   	QOpenGLVertexArrayObject m_VertexArrayObject;
-	QOpenGLBuffer m_MapPositionArrayBuffer;
-	QOpenGLBuffer m_MapColorArrayBuffer;
-	QOpenGLBuffer m_BackgroundPositionArrayBuffer;
-	QOpenGLBuffer m_WavefrontModelsArrayBuffer;
+   	QOpenGLVertexArrayObject m_vertexArrayObject;
+	QOpenGLVertexArrayObject m_vertexArrayObjectWavefrontModel;
+	QOpenGLBuffer m_mapPositionArrayBuffer;
+	QOpenGLBuffer m_mapColorArrayBuffer;
+	QOpenGLBuffer m_wavefrontModelArrayBuffer;
+	QOpenGLBuffer m_wavefrontModelIndexArrayBuffer;
+	QOpenGLBuffer m_wavefrontModelColorArrayBuffer;
+	int m_wavefrontModelIndexCount{ 0 };
 
 	void initMap(QOpenGLShaderProgram* p_shaderProgram);
-	void initWavefrontModels();
+	void initWavefrontModels(QOpenGLShaderProgram* p_shaderProgram);
 
 	void renderMap(QOpenGLShaderProgram* p_shaderProgram);
-	void renderWavefrontModels();
+	void renderWavefrontModels(QOpenGLShaderProgram* p_shaderProgram);
 };
 
 #endif // MapRenderer_H

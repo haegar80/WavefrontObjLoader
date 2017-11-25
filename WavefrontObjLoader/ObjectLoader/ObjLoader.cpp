@@ -3,7 +3,9 @@
 #include <sstream>
 #include "OBJLoader.h"
   
-ObjLoader::ObjLoader()
+ObjLoader::ObjLoader(int p_xWindowSize, int p_yWindowsSize) :
+	m_xWindowSize(p_xWindowSize),
+	m_yWindowSize(p_yWindowsSize)
 {
 }
  
@@ -104,6 +106,20 @@ void ObjLoader::DumpOBJ(void)
 	}
 }
 
+void ObjLoader::DetermineScaleFactor(float xVertex, float yVertex)
+{
+	float scaleFactorX = (m_xWindowSize / xVertex) / 2.0f;
+	float scaleFactorY = (m_yWindowSize / yVertex) / 2.0f;
+	if (scaleFactorX <= scaleFactorY)
+	{
+		m_scaleFactor = scaleFactorX;
+	}
+	else {
+		m_scaleFactor = scaleFactorY;
+	}
+	m_scaleFactorDetermined = true;
+}
+
 ObjVertexCoords ObjLoader::ReadObjVertexCoords(std::ifstream& p_file)
 {
 	std::string vertexX;
@@ -125,6 +141,14 @@ ObjVertexCoords ObjLoader::ReadObjVertexCoords(std::ifstream& p_file)
 	vertexXStream >> vertex.X;
 	vertexYStream >> vertex.Y;
 	vertexZStream >> vertex.Z;
+
+	if (!m_scaleFactorDetermined)
+	{
+		DetermineScaleFactor(vertex.X, vertex.Y);
+	}
+
+	vertex.X *= m_scaleFactor;
+	vertex.Y *= m_scaleFactor;
 
 	return vertex;
 }
@@ -160,7 +184,7 @@ ObjFace ObjLoader::ReadObjFaceWithNormalsAndTexture(std::ifstream& p_file)
 	std::size_t countSpaces = std::count(faceLine.begin(), faceLine.end(), ' ');
 	ObjFace face;
 	if(countSlashes > (2 * countSpaces)) {
-		std::cout << "ReadObjFaceWithNormalsAndTexture: Invalid vertex index." << std::endl;
+		std::cout << "ReadObjFaceWithNormalsAndTexture: Invalid number of slashes." << std::endl;
 		face.Valid = false;
 	}
 	else {
@@ -171,24 +195,30 @@ ObjFace ObjLoader::ReadObjFaceWithNormalsAndTexture(std::ifstream& p_file)
 		std::size_t foundPosSlash1 = 0;
 		std::size_t foundPosSlash2 = 0;
 		std::size_t foundPosSpace = 0;
-	    for (unsigned int i = 0; i < countSlashes; i ++) {
+		std::size_t foundNextPosSpace = 0;
+	    for (unsigned int i = 0; foundNextPosSpace < faceLine.length(); i ++) {
 		    foundPosSlash1 = faceLine.find('/', foundPosSlash1);
-			foundPosSlash1++;
-			foundPosSlash2 = faceLine.find('/', foundPosSlash1);
+			foundPosSlash2 = faceLine.find('/', foundPosSlash1 + 1);
 			foundPosSpace = faceLine.find(' ', foundPosSpace);
-			std::size_t foundNextPosSpace = faceLine.find(' ', foundPosSpace + 1);
+			foundNextPosSpace = faceLine.find(' ', foundPosSpace + 1);
 			if(std::string::npos == foundNextPosSpace) {
 				foundNextPosSpace = faceLine.length();
 			}
-			unsigned int vertIndexSize = foundPosSlash1 - foundPosSpace - 1;
-			unsigned int uvIndexSize = foundPosSlash2 - foundPosSlash1 - 1;
-			unsigned int normalIndexSize = foundNextPosSpace - foundPosSlash2 - 1;
-			std::stringstream vertIndexStream(faceLine.substr(foundPosSlash1 - vertIndexSize, vertIndexSize));
-	        std::stringstream uvIndexStream(faceLine.substr(foundPosSlash1 + 1, uvIndexSize));
-			std::stringstream normalIndexStream(faceLine.substr(foundPosSlash2 + 1, normalIndexSize));
+
+			unsigned short vertIndexPos = foundPosSpace + 1;
+			unsigned short uvIndexPos = foundPosSlash1 + 1;
+			unsigned short normalIndexPos = foundPosSlash2 + 1;
+
+			unsigned short vertIndexSize = foundPosSlash1 - vertIndexPos;
+			unsigned short uvIndexSize = foundPosSlash2 - uvIndexPos;
+			unsigned short normalIndexSize = foundNextPosSpace - normalIndexPos;
+
+			std::stringstream vertIndexStream(faceLine.substr(vertIndexPos, vertIndexSize));
+	        std::stringstream uvIndexStream(faceLine.substr(uvIndexPos, uvIndexSize));
+			std::stringstream normalIndexStream(faceLine.substr(normalIndexPos, normalIndexSize));
 			
 			foundPosSlash1 = foundPosSlash2 + 1;
-			foundPosSpace++;
+			foundPosSpace = foundNextPosSpace;
 			vertIndexStream >> vertIndex;
 			uvIndexStream >> uvIndex;
 			normalIndexStream >> normalIndex;
@@ -209,8 +239,8 @@ ObjFace ObjLoader::ReadObjFaceWithNormals(std::ifstream& p_file)
 	std::size_t countSlashes = std::count(faceLine.begin(), faceLine.end(), '/');
 	std::size_t countSpaces = std::count(faceLine.begin(), faceLine.end(), ' ');
 	ObjFace face;
-	if(countSlashes > countSpaces) {
-		std::cout << "ReadObjFaceWithNormals: Invalid vertex index." << std::endl;
+	if(countSlashes > (2 * countSpaces)) {
+		std::cout << "ReadObjFaceWithNormals: Invalid number of slashes." << std::endl;
 		face.Valid = false;
 	}
 	else {
@@ -219,20 +249,26 @@ ObjFace ObjLoader::ReadObjFaceWithNormals(std::ifstream& p_file)
         int normalIndex = 0;
 		std::size_t foundPosSlash = 0;
 		std::size_t foundPosSpace = 0;
-	    for (unsigned int i = 0; i < countSlashes; i ++) {
+		std::size_t foundNextPosSpace = 0;
+	    for (unsigned int i = 0; foundNextPosSpace < faceLine.length(); i ++) {
 		    foundPosSlash = faceLine.find('/', foundPosSlash);
 			foundPosSpace = faceLine.find(' ', foundPosSpace);
-			std::size_t foundNextPosSpace = faceLine.find(' ', foundPosSpace + 1);
+			foundNextPosSpace = faceLine.find(' ', foundPosSpace + 1);
 			if(std::string::npos == foundNextPosSpace) {
 				foundNextPosSpace = faceLine.length();
 			}
-			unsigned int vertIndexSize = foundPosSlash - foundPosSpace - 1;
-			unsigned int normalIndexSize = foundNextPosSpace - foundPosSlash - 1;
-			std::stringstream vertIndexStream(faceLine.substr(foundPosSlash - vertIndexSize, vertIndexSize));
-	        std::stringstream normalIndexStream(faceLine.substr(foundPosSlash + 1, normalIndexSize));
+
+			unsigned short vertIndexPos = foundPosSpace + 1;
+			unsigned short normalIndexPos = foundPosSlash + 2;
+
+			unsigned short vertIndexSize = foundPosSlash - vertIndexPos;
+			unsigned short normalIndexSize = foundNextPosSpace - normalIndexPos;
+
+			std::stringstream vertIndexStream(faceLine.substr(vertIndexPos, vertIndexSize));
+	        std::stringstream normalIndexStream(faceLine.substr(normalIndexPos, normalIndexSize));
 			
-			foundPosSlash++;
-			foundPosSpace++;
+			foundPosSlash += 2;
+			foundPosSpace = foundNextPosSpace;
 			vertIndexStream >> vertIndex;
 			normalIndexStream >> normalIndex;
 
@@ -261,20 +297,26 @@ ObjFace ObjLoader::ReadObjFaceWithTexture(std::ifstream& p_file)
         int uvIndex = 0;
 		std::size_t foundPosSlash = 0;
 		std::size_t foundPosSpace = 0;
-	    for (unsigned int i = 0; i < countSlashes; i ++) {
+		std::size_t foundNextPosSpace = 0;
+		for (unsigned int i = 0; foundNextPosSpace < faceLine.length(); i++) {
 		    foundPosSlash = faceLine.find('/', foundPosSlash);
 			foundPosSpace = faceLine.find(' ', foundPosSpace);
-			std::size_t foundNextPosSpace = faceLine.find(' ', foundPosSpace + 1);
+			foundNextPosSpace = faceLine.find(' ', foundPosSpace + 1);
 			if(std::string::npos == foundNextPosSpace) {
 				foundNextPosSpace = faceLine.length();
 			}
-			unsigned int vertIndexSize = foundPosSlash - foundPosSpace - 1;
-			unsigned int uvIndexSize = foundNextPosSpace - foundPosSlash - 1;
-			std::stringstream vertIndexStream(faceLine.substr(foundPosSlash - vertIndexSize, vertIndexSize));
-	        std::stringstream uvIndexStream(faceLine.substr(foundPosSlash + 1, uvIndexSize));
+
+			unsigned short vertIndexPos = foundPosSpace + 1;
+			unsigned short uvIndexPos = foundPosSlash + 1;
+
+			unsigned short vertIndexSize = foundPosSlash - vertIndexPos;
+			unsigned short uvIndexSize = foundNextPosSpace - uvIndexPos;
+
+			std::stringstream vertIndexStream(faceLine.substr(vertIndexPos, vertIndexSize));
+	        std::stringstream uvIndexStream(faceLine.substr(uvIndexPos, uvIndexSize));
 			
 			foundPosSlash++;
-			foundPosSpace++;
+			foundPosSpace = foundNextPosSpace;
 			vertIndexStream >> vertIndex;
 			uvIndexStream >> uvIndex;
 
