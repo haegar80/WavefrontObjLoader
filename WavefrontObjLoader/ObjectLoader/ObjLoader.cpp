@@ -35,6 +35,7 @@ void ObjLoader::LoadOBJ(std::string file_name)
 		case 'u': // Fall through
 		case 's': // Fall through
 		case 'g': // Group. Not supported. Fall through
+		default:
 			std::getline(objFile, line); // Skip to the next line
 			break;
 		case 'v':
@@ -72,10 +73,10 @@ void ObjLoader::LoadOBJ(std::string file_name)
 			} else if(!has_normals && has_uvs) {
 				face = ReadObjFaceWithTexture(objFile);
 			} else if(!has_normals && !has_uvs) {
-				face = ReadObjFace(objFile);
+				face = ReadObjFaceVertexOnly(objFile);
 			}
 			if(face.Valid) {
-				m_faces.push_back(face);
+				AddTriangledFace(face);
 			}
 			break;
 		}
@@ -97,8 +98,8 @@ void ObjLoader::DumpOBJ(void)
 		std::cout << m_uvs.at(i).U << " " << m_uvs.at(i).V << std::endl;
 	}
 	for(unsigned long i = 0; i < m_faces.size(); i++) {
-		for(unsigned long j = 0; j < m_faces.at(i).Vertices.size(); j++) {
-			std::cout << m_faces.at(i).Vertices.at(j) << "/" << m_faces.at(i).UVs.at(j) << "/" << m_faces.at(i).Normals.at(j) << " ";
+		for(unsigned long j = 0; j < m_faces.at(i).Indices.size(); j++) {
+			std::cout << m_faces.at(i).Indices.at(j).VertexIndex << "/" << m_faces.at(i).Indices.at(j).TextureIndex << "/" << m_faces.at(i).Indices.at(j).NormalIndex << " ";
             std::cout << std::endl;
 		}
 	}
@@ -163,6 +164,10 @@ ObjFace ObjLoader::ReadObjFaceWithNormalsAndTexture(std::ifstream& p_file)
 		std::cout << "ReadObjFaceWithNormalsAndTexture: Invalid number of slashes." << std::endl;
 		face.Valid = false;
 	}
+	else if (0 == countSlashes)
+	{
+		face.Valid = false;
+	}
 	else {
 		face.Valid = true;
 		int vertIndex = 0;
@@ -199,9 +204,11 @@ ObjFace ObjLoader::ReadObjFaceWithNormalsAndTexture(std::ifstream& p_file)
 			uvIndexStream >> uvIndex;
 			normalIndexStream >> normalIndex;
 
-			face.Vertices.push_back(vertIndex - 1);
-			face.UVs.push_back(uvIndex - 1);
-			face.Normals.push_back(normalIndex - 1);
+			ObjFaceIndices indices;
+			indices.VertexIndex = vertIndex - 1;
+			indices.TextureIndex = uvIndex - 1;
+			indices.NormalIndex = normalIndex - 1;
+			face.Indices.push_back(indices);
 		}
 	}
 
@@ -217,6 +224,10 @@ ObjFace ObjLoader::ReadObjFaceWithNormals(std::ifstream& p_file)
 	ObjFace face;
 	if(countSlashes > (2 * countSpaces)) {
 		std::cout << "ReadObjFaceWithNormals: Invalid number of slashes." << std::endl;
+		face.Valid = false;
+	}
+	else if (0 == countSlashes)
+	{
 		face.Valid = false;
 	}
 	else {
@@ -248,8 +259,10 @@ ObjFace ObjLoader::ReadObjFaceWithNormals(std::ifstream& p_file)
 			vertIndexStream >> vertIndex;
 			normalIndexStream >> normalIndex;
 
-			face.Vertices.push_back(vertIndex - 1);
-			face.Normals.push_back(normalIndex - 1);
+			ObjFaceIndices indices;
+			indices.VertexIndex = vertIndex - 1;
+			indices.NormalIndex = normalIndex - 1;
+			face.Indices.push_back(indices);
 		}
 	}
 
@@ -265,6 +278,10 @@ ObjFace ObjLoader::ReadObjFaceWithTexture(std::ifstream& p_file)
 	ObjFace face;
 	if(countSlashes > countSpaces) {
 		std::cout << "ReadObjFaceWithTexture: Invalid vertex index." << std::endl;
+		face.Valid = false;
+	}
+	else if (0 == countSlashes)
+	{
 		face.Valid = false;
 	}
 	else {
@@ -296,15 +313,17 @@ ObjFace ObjLoader::ReadObjFaceWithTexture(std::ifstream& p_file)
 			vertIndexStream >> vertIndex;
 			uvIndexStream >> uvIndex;
 
-			face.Vertices.push_back(vertIndex - 1);
-			face.UVs.push_back(uvIndex - 1);
+			ObjFaceIndices indices;
+			indices.VertexIndex = vertIndex - 1;
+			indices.TextureIndex = uvIndex - 1;
+			face.Indices.push_back(indices);
 		}
 	}
 
 	return face;
 }
 
-ObjFace ObjLoader::ReadObjFace(std::ifstream& p_file)
+ObjFace ObjLoader::ReadObjFaceVertexOnly(std::ifstream& p_file)
 {
 	std::string faceLine;
 	std::getline(p_file, faceLine, '\n');
@@ -326,8 +345,38 @@ ObjFace ObjLoader::ReadObjFace(std::ifstream& p_file)
 		foundPosSpace++;
 		vertIndexStream >> vertIndex;
 
-		face.Vertices.push_back(vertIndex - 1);
+		ObjFaceIndices indices;
+		indices.VertexIndex = vertIndex - 1;
+		face.Indices.push_back(indices);
 	}
 
 	return face;
+}
+
+void ObjLoader::AddTriangledFace(ObjFace p_originalFace)
+{
+	ObjFace triangledFace1;
+	ObjFaceIndices indices0 = p_originalFace.Indices.at(0);
+	ObjFaceIndices indices1 = p_originalFace.Indices.at(1);
+	ObjFaceIndices indices2 = p_originalFace.Indices.at(2);
+	triangledFace1.Indices.push_back(indices0);
+	triangledFace1.Indices.push_back(indices1);
+	triangledFace1.Indices.push_back(indices2);
+
+	m_faces.push_back(triangledFace1);
+
+	constexpr uint8_t TriangleSize = 3;
+	if (p_originalFace.Indices.size() > TriangleSize)
+	{
+		for (int i = 3; i < p_originalFace.Indices.size(); i++)
+		{
+			ObjFace triangledFaceN;
+			indices1 = indices2;
+			indices2 = p_originalFace.Indices.at(i);
+			triangledFaceN.Indices.push_back(indices0);
+			triangledFaceN.Indices.push_back(indices1);
+			triangledFaceN.Indices.push_back(indices2);
+			m_faces.push_back(triangledFaceN);
+		}
+	}
 }

@@ -18,11 +18,16 @@ struct ObjTextureCoords
 	float V;
 };
 
+struct ObjFaceIndices
+{
+	unsigned short VertexIndex;
+	unsigned short NormalIndex;
+	unsigned short TextureIndex;
+};
+
 struct ObjFace
 {
-	std::vector<unsigned short> Vertices;
-    std::vector<unsigned short> Normals;
-    std::vector<unsigned short> UVs;
+	std::vector<ObjFaceIndices> Indices;
 	bool Valid;
 };
  
@@ -58,7 +63,8 @@ private:
 	ObjFace ReadObjFaceWithNormalsAndTexture(std::ifstream& p_file);
 	ObjFace ReadObjFaceWithNormals(std::ifstream& p_file);
 	ObjFace ReadObjFaceWithTexture(std::ifstream& p_file);
-	ObjFace ReadObjFace(std::ifstream& p_file);
+	ObjFace ReadObjFaceVertexOnly(std::ifstream& p_file);
+	void AddTriangledFace(ObjFace p_originalFace);
 };
  
 #endif

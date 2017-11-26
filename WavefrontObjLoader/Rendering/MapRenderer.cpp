@@ -134,9 +134,9 @@ void MapRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 
 	for each (ObjFace face in faces)
 	{
-		for each(unsigned short index in face.Vertices)
+		for each(ObjFaceIndices index in face.Indices)
 		{
-			indices.push_back(index);
+			indices.push_back(index.VertexIndex);
 		}
 	}
 	m_wavefrontModelIndexCount = indices.size();
@@ -165,7 +165,7 @@ void MapRenderer::renderMap(QOpenGLShaderProgram* p_shaderProgram)
 
 void MapRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 {
-	glDrawElements(GL_LINE_STRIP, m_wavefrontModelIndexCount, GL_UNSIGNED_SHORT, 0);
+	glDrawElements(GL_TRIANGLES, m_wavefrontModelIndexCount, GL_UNSIGNED_SHORT, 0);
 }
 
 std::vector<ObjVertexCoords> MapRenderer::getScaledVerticesFromWavefrontModel()
