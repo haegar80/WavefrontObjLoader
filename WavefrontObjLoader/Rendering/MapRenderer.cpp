@@ -1,11 +1,12 @@
 #include "MapRenderer.h"
-#include "../ObjectLoader/ObjLoader.h"
 #include <QOpenGLWidget>
 #include <QtGui/QOpenGLShaderProgram>
 
-MapRenderer::MapRenderer(const ObjLoader& pc_objLoader) :
+MapRenderer::MapRenderer(const ObjLoader& pc_objLoader, int p_width, int p_height) :
 	mc_objLoader(pc_objLoader),
-	m_wavefrontModelIndexArrayBuffer(QOpenGLBuffer::IndexBuffer)
+	m_wavefrontModelIndexArrayBuffer(QOpenGLBuffer::IndexBuffer),
+	m_width(p_width),
+	m_height(p_height)
 {
 	initializeOpenGLFunctions();
 
@@ -48,7 +49,7 @@ void MapRenderer::render(QOpenGLShaderProgram* p_shaderProgram)
 
 void MapRenderer::initMap(QOpenGLShaderProgram* p_shaderProgram)
 {
-	float size = static_cast<float>(1000);
+	float size = static_cast<float>(m_height);
 
 	QVector3D frontColor(0.0f, 0.45f, 0.0f);
 
@@ -124,7 +125,7 @@ void MapRenderer::initMap(QOpenGLShaderProgram* p_shaderProgram)
 void MapRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 {
 	std::vector<ObjFace> faces = mc_objLoader.GetFaces();
-	std::vector<ObjVertexCoords> vertices = mc_objLoader.GetVertices();
+	std::vector<ObjVertexCoords> vertices = getScaledVerticesFromWavefrontModel();
 
 	m_wavefrontModelArrayBuffer.bind();
 	m_wavefrontModelArrayBuffer.allocate(vertices.data(), vertices.size() * sizeof(ObjVertexCoords));
@@ -165,4 +166,54 @@ void MapRenderer::renderMap(QOpenGLShaderProgram* p_shaderProgram)
 void MapRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 {
 	glDrawElements(GL_LINE_STRIP, m_wavefrontModelIndexCount, GL_UNSIGNED_SHORT, 0);
+}
+
+std::vector<ObjVertexCoords> MapRenderer::getScaledVerticesFromWavefrontModel()
+{
+	std::vector<ObjVertexCoords> vertices = mc_objLoader.GetVertices();
+
+	float minX = 0.0f;
+	float minY = 0.0f;
+	float maxX = 0.0f;
+	float maxY = 0.0f;
+	for each(ObjVertexCoords vertex in vertices)
+	{
+		if (vertex.X > maxX)
+		{
+			maxX = vertex.X;
+		}
+		else if (vertex.X < minX)
+		{
+			minX = vertex.X;
+		}
+		if (vertex.Y > maxY)
+		{
+			maxY = vertex.Y;
+		}
+		else if (vertex.Y < minY)
+		{
+			minY = vertex.Y;
+		}
+	}
+
+	float differenceX = maxX - minX;
+	float differenceY = maxY - minY;
+
+	float scaleFactorX = m_width / differenceX;
+	float scaleFactorY = m_height / differenceY;
+	float moveToCenterX = minX * scaleFactorX;
+	float moveToCenterY = minY * scaleFactorY;
+
+	std::vector<ObjVertexCoords> scaledVertices;
+
+	for each(ObjVertexCoords vertex in vertices)
+	{
+		ObjVertexCoords scaledVertex;
+		scaledVertex.X = vertex.X * scaleFactorX - moveToCenterX;
+		scaledVertex.Y = vertex.Y * scaleFactorY - moveToCenterY;
+		scaledVertex.Z = vertex.Z;
+		scaledVertices.push_back(scaledVertex);
+	}
+
+	return scaledVertices;
 }

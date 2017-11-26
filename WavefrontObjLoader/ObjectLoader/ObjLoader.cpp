@@ -3,9 +3,7 @@
 #include <sstream>
 #include "OBJLoader.h"
   
-ObjLoader::ObjLoader(int p_xWindowSize, int p_yWindowsSize) :
-	m_xWindowSize(p_xWindowSize),
-	m_yWindowSize(p_yWindowsSize)
+ObjLoader::ObjLoader()
 {
 }
  
@@ -106,20 +104,6 @@ void ObjLoader::DumpOBJ(void)
 	}
 }
 
-void ObjLoader::DetermineScaleFactor(float xVertex, float yVertex)
-{
-	float scaleFactorX = (m_xWindowSize / xVertex) / 2.0f;
-	float scaleFactorY = (m_yWindowSize / yVertex) / 2.0f;
-	if (scaleFactorX <= scaleFactorY)
-	{
-		m_scaleFactor = scaleFactorX;
-	}
-	else {
-		m_scaleFactor = scaleFactorY;
-	}
-	m_scaleFactorDetermined = true;
-}
-
 ObjVertexCoords ObjLoader::ReadObjVertexCoords(std::ifstream& p_file)
 {
 	std::string vertexX;
@@ -141,14 +125,6 @@ ObjVertexCoords ObjLoader::ReadObjVertexCoords(std::ifstream& p_file)
 	vertexXStream >> vertex.X;
 	vertexYStream >> vertex.Y;
 	vertexZStream >> vertex.Z;
-
-	if (!m_scaleFactorDetermined)
-	{
-		DetermineScaleFactor(vertex.X, vertex.Y);
-	}
-
-	vertex.X *= m_scaleFactor;
-	vertex.Y *= m_scaleFactor;
 
 	return vertex;
 }
