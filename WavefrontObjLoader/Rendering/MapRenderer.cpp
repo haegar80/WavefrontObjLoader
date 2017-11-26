@@ -13,10 +13,8 @@ MapRenderer::MapRenderer(const ObjLoader& pc_objLoader, int p_width, int p_heigh
 	m_vertexArrayObject.create();
 	m_vertexArrayObjectWavefrontModel.create();
 	m_mapPositionArrayBuffer.create();
-	m_mapColorArrayBuffer.create();
 	m_wavefrontModelArrayBuffer.create();
 	m_wavefrontModelIndexArrayBuffer.create();
-	m_wavefrontModelColorArrayBuffer.create();
 }
 
 MapRenderer::~MapRenderer()
@@ -24,10 +22,8 @@ MapRenderer::~MapRenderer()
 	m_vertexArrayObject.destroy();
 	m_vertexArrayObjectWavefrontModel.destroy();
 	m_mapPositionArrayBuffer.destroy();
-	m_mapColorArrayBuffer.destroy();
 	m_wavefrontModelArrayBuffer.destroy();
 	m_wavefrontModelIndexArrayBuffer.destroy();
-	m_wavefrontModelColorArrayBuffer.destroy();
 }
 
 
@@ -51,8 +47,6 @@ void MapRenderer::initMap(QOpenGLShaderProgram* p_shaderProgram)
 {
 	float size = static_cast<float>(m_height);
 
-	QVector3D frontColor(0.0f, 0.45f, 0.0f);
-
 	// front
 	QVector3D frontPositions[4] = {
 		QVector3D(size, 0.0f, -10.0f),
@@ -60,8 +54,6 @@ void MapRenderer::initMap(QOpenGLShaderProgram* p_shaderProgram)
 		QVector3D(0.0f, size, -10.0f),
 		QVector3D(0.0f, 0.0f, -10.0f)
 	};
-
-	QVector3D defaultColor(0.0f, 0.2f, 0.0f);
 
 	// top
 	QVector3D topPositions[4] = {
@@ -103,23 +95,12 @@ void MapRenderer::initMap(QOpenGLShaderProgram* p_shaderProgram)
 		{ leftPositions[0], leftPositions[1], leftPositions[2], leftPositions[3] }
 	};
 
-	QVector3D vertexColors[] = {
-		frontColor, defaultColor, defaultColor, defaultColor, defaultColor
-	};
-
 	m_mapPositionArrayBuffer.bind();
 	m_mapPositionArrayBuffer.allocate(vertexPositions, 20 * sizeof(QVector3D));
-
-	m_mapColorArrayBuffer.bind();
-	m_mapColorArrayBuffer.allocate(vertexColors, 5 * sizeof(QVector3D));
 
 	m_mapPositionArrayBuffer.bind();
 	p_shaderProgram->enableAttributeArray(0);
 	p_shaderProgram->setAttributeBuffer(0, GL_FLOAT, 0, 3);
-
-	m_mapColorArrayBuffer.bind();
-	p_shaderProgram->enableAttributeArray(1);
-	p_shaderProgram->setAttributeBuffer(1, GL_FLOAT, 0, 3);
 }
 
 void MapRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
@@ -130,41 +111,39 @@ void MapRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 	m_wavefrontModelArrayBuffer.bind();
 	m_wavefrontModelArrayBuffer.allocate(vertices.data(), vertices.size() * sizeof(ObjVertexCoords));
 
-	std::vector<unsigned short> indices;
+	std::vector<unsigned short> vertexIndices;
 
 	for each (ObjFace face in faces)
 	{
 		for each(ObjFaceIndices index in face.Indices)
 		{
-			indices.push_back(index.VertexIndex);
+			vertexIndices.push_back(index.VertexIndex);
 		}
 	}
-	m_wavefrontModelIndexCount = indices.size();
+	m_wavefrontModelIndexCount = vertexIndices.size();
 	
 	m_wavefrontModelIndexArrayBuffer.bind();
-	m_wavefrontModelIndexArrayBuffer.allocate(indices.data(), m_wavefrontModelIndexCount * sizeof(unsigned short));
-
-	QVector3D wavefrontModelColors(0.5f, 0.2f, 0.1f);
-	m_wavefrontModelColorArrayBuffer.bind();
-	m_wavefrontModelColorArrayBuffer.allocate(&wavefrontModelColors, sizeof(QVector3D));
+	m_wavefrontModelIndexArrayBuffer.allocate(vertexIndices.data(), m_wavefrontModelIndexCount * sizeof(unsigned short));
 
 	m_wavefrontModelArrayBuffer.bind();
 	m_wavefrontModelIndexArrayBuffer.bind();
 	p_shaderProgram->enableAttributeArray(0);
 	p_shaderProgram->setAttributeBuffer(0, GL_FLOAT, 0, 3);
-
-	m_wavefrontModelColorArrayBuffer.bind();
-	p_shaderProgram->enableAttributeArray(1);
-	p_shaderProgram->setAttributeBuffer(1, GL_FLOAT, 0, 3);
 }
 
 void MapRenderer::renderMap(QOpenGLShaderProgram* p_shaderProgram)
 {
+	QVector3D frontColor(0.0f, 0.3f, 0.0f);
+	p_shaderProgram->setUniformValue("color", frontColor);
+
 	glDrawArrays(GL_POLYGON, 0, 20);
 }
 
 void MapRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 {
+	QVector3D defaultColor(0.0f, 0.0f, 0.4f);
+	p_shaderProgram->setUniformValue("color", defaultColor);
+
 	glDrawElements(GL_TRIANGLES, m_wavefrontModelIndexCount, GL_UNSIGNED_SHORT, 0);
 }
 

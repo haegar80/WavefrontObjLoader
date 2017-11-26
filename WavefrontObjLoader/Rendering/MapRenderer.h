@@ -31,10 +31,8 @@ private:
    	QOpenGLVertexArrayObject m_vertexArrayObject;
 	QOpenGLVertexArrayObject m_vertexArrayObjectWavefrontModel;
 	QOpenGLBuffer m_mapPositionArrayBuffer;
-	QOpenGLBuffer m_mapColorArrayBuffer;
 	QOpenGLBuffer m_wavefrontModelArrayBuffer;
 	QOpenGLBuffer m_wavefrontModelIndexArrayBuffer;
-	QOpenGLBuffer m_wavefrontModelColorArrayBuffer;
 	int m_width{ 0 };
 	int m_height{ 0 };
 	int m_wavefrontModelIndexCount{ 0 };
