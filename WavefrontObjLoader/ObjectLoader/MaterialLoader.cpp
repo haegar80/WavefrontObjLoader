@@ -6,7 +6,7 @@ MaterialLoader::MaterialLoader()
 {
 }
 
-void MaterialLoader::LoadMaterial(std::string p_fileName)
+void MaterialLoader::LoadMaterial(std::string& p_fileName)
 {
 	std::ifstream objFile;
 
@@ -15,8 +15,6 @@ void MaterialLoader::LoadMaterial(std::string p_fileName)
 		std::cout << "File " << p_fileName.c_str() << " could not be opened!!" << std::endl;
 		return;
 	}
-
-	Material* material{ nullptr };
 
 	while (!objFile.eof()) {
 		std::string line;
@@ -28,12 +26,25 @@ void MaterialLoader::LoadMaterial(std::string p_fileName)
 			if (0 == command.compare("newmtl"))
 			{
 				std::string name = line.substr(foundPosSpace + 1, line.length() - (foundPosSpace + 1));
-				material = new Material(name);
-				m_Materials.push_back(material);
+				m_Materials.push_back(new Material(name));
 			}
 		}
 
 	}
 
 	objFile.close();
+}
+
+Material* MaterialLoader::GetMaterialByName(std::string& p_name)
+{
+	Material* foundMaterial{ nullptr };
+	for each (Material* material in m_Materials)
+	{
+		if (0 == material->getName().compare(p_name))
+		{
+			foundMaterial = material;
+			break;
+		}
+	}
+	return foundMaterial;
 }

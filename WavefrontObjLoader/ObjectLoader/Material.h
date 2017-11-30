@@ -9,7 +9,7 @@ public:
 	Material(std::string p_name);
 	virtual ~Material() = default;
 
-	std::string getName()
+	std::string& getName()
 	{
 		return m_name;
 	}
@@ -51,7 +51,7 @@ public:
 	}
 
 private:
-	std::string& m_name;
+	std::string m_name;
 
 	QVector3D m_ambientColor;
 	QVector3D m_diffuseColor;

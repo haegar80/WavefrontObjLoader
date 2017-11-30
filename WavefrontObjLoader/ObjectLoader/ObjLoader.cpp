@@ -72,9 +72,32 @@ void ObjLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTokens)
 {
 	if (0 == p_lineTokens[0].compare("mtllib"))
 	{
-		std::string path = p_lineTokens[1];
-		MaterialLoader materialLoader;
-		materialLoader.LoadMaterial(path);
+		if (2 == p_lineTokens.size())
+		{
+			std::string path = "Wavefront/building/" + p_lineTokens[1];
+			m_materialLoader.LoadMaterial(path);
+		}
+	}
+	else if (0 == p_lineTokens[0].compare("usemtl")) // Use this material as current
+	{
+		if (2 == p_lineTokens.size())
+		{
+			std::string materialName = p_lineTokens[1];
+			Material* currentMaterial = m_materialLoader.GetMaterialByName(materialName);
+			if (nullptr != currentMaterial) {
+				m_currentMaterial = currentMaterial;
+				std::vector<ObjFace> faces;
+				m_facesPerMaterial.insert(std::make_pair(currentMaterial, faces));
+			}
+		}
+	}
+	else if (0 == p_lineTokens[0].compare("v")) // Add position vertex
+	{
+		if (4 == p_lineTokens.size())
+		{
+			ObjVertexCoords vertex = ReadObjVertexCoords(std::move(p_lineTokens));
+			m_vertices.push_back(vertex);
+		}
 	}
 	else if (0 == p_lineTokens[0].compare("v")) // Add position vertex
 	{
@@ -312,6 +335,9 @@ void ObjLoader::AddTriangledFace(ObjFace p_originalFace)
 	triangledFace1.Indices.push_back(indices2);
 
 	m_faces.push_back(triangledFace1);
+	if (nullptr != m_currentMaterial) {
+		m_facesPerMaterial.at(m_currentMaterial).push_back(triangledFace1);
+	}
 
 	constexpr uint8_t TriangleSize = 3;
 	if (p_originalFace.Indices.size() > TriangleSize)
@@ -324,7 +350,11 @@ void ObjLoader::AddTriangledFace(ObjFace p_originalFace)
 			triangledFaceN.Indices.push_back(indices0);
 			triangledFaceN.Indices.push_back(indices1);
 			triangledFaceN.Indices.push_back(indices2);
+
 			m_faces.push_back(triangledFaceN);
+			if (nullptr != m_currentMaterial) {
+				m_facesPerMaterial.at(m_currentMaterial).push_back(triangledFace1);
+			}
 		}
 	}
 }

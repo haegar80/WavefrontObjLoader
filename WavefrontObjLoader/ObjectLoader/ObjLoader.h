@@ -56,6 +56,9 @@ private:
 	std::vector<ObjVertexCoords> m_normals;
 	std::vector<ObjTextureCoords> m_uvs;
 	std::vector<ObjFace> m_faces;
+	MaterialLoader m_materialLoader;
+	std::map<Material*, std::vector<ObjFace>> m_facesPerMaterial;
+	Material* m_currentMaterial{ nullptr };
 
 	void EvaluateAndExecuteCommand(std::vector<std::string> p_lineTokens);
 	ObjVertexCoords ReadObjVertexCoords(std::vector<std::string> p_lineTokens);
