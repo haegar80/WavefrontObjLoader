@@ -1,7 +1,6 @@
-#ifndef _ObjLoader_H
-#define _ObjLoader_H
- 
-#include <fstream>
+#pragma once
+
+#include "MaterialLoader.h"
 #include <vector>
 #include <string>
 
@@ -34,7 +33,7 @@ struct ObjFace
 class ObjLoader{
 public:
         ObjLoader();
-        ~ObjLoader();
+        virtual ~ObjLoader() = default;
  
 		std::vector<ObjVertexCoords> GetVertices() const {
 			return m_vertices;
@@ -49,7 +48,7 @@ public:
 			return m_faces;
 		}
  
-        void LoadOBJ(std::string p_file_name);
+        void LoadOBJ(std::string p_fileName);
         void DumpOBJ(void);
  
 private:
@@ -58,13 +57,12 @@ private:
 	std::vector<ObjTextureCoords> m_uvs;
 	std::vector<ObjFace> m_faces;
 
-	ObjVertexCoords ReadObjVertexCoords(std::ifstream& p_file);
-    ObjTextureCoords ReadObjTextureCoords(std::ifstream& p_file);
-	ObjFace ReadObjFaceWithNormalsAndTexture(std::ifstream& p_file);
-	ObjFace ReadObjFaceWithNormals(std::ifstream& p_file);
-	ObjFace ReadObjFaceWithTexture(std::ifstream& p_file);
-	ObjFace ReadObjFaceVertexOnly(std::ifstream& p_file);
+	void EvaluateAndExecuteCommand(std::vector<std::string> p_lineTokens);
+	ObjVertexCoords ReadObjVertexCoords(std::vector<std::string> p_lineTokens);
+    ObjTextureCoords ReadObjTextureCoords(std::vector<std::string> p_lineTokens);
+	ObjFace ReadObjFaceWithNormalsAndTexture(std::vector<std::string> p_lineTokens);
+	ObjFace ReadObjFaceWithNormals(std::vector<std::string> p_lineTokens);
+	ObjFace ReadObjFaceWithTexture(std::vector<std::string> p_lineTokens);
+	ObjFace ReadObjFaceVertexOnly(std::vector<std::string> p_lineTokens);
 	void AddTriangledFace(ObjFace p_originalFace);
 };
- 
-#endif

@@ -1,84 +1,47 @@
+#include "OBJLoader.h"
 #include <cstdio>
 #include <iostream>
+#include <fstream>
 #include <sstream>
-#include "OBJLoader.h"
   
 ObjLoader::ObjLoader()
 {
 }
  
-ObjLoader::~ObjLoader()
+void ObjLoader::LoadOBJ(std::string p_fileName)
 {
-}
- 
-void ObjLoader::LoadOBJ(std::string file_name)
-{
-	//FILE* objFile;
-	std::ifstream objFile; 
-	bool has_normals = false;
-	bool has_uvs = false;
-	ObjVertexCoords vertex;
+	std::ifstream objFile;
 	ObjTextureCoords texture;
  
-	objFile.open(file_name.c_str(), std::ios_base::in);
+	objFile.open(p_fileName.c_str(), std::ios_base::in);
 	if(!objFile) {
-	    std::cout << "File " << file_name.c_str() << " could not be opened!!" << std::endl;
+	    std::cout << "File " << p_fileName.c_str() << " could not be opened!!" << std::endl;
 		return;
 	}
  
 	while(!objFile.eof()) {
 		char firstChar;
 		std::string line;
-		objFile.get(firstChar);
-		switch(firstChar) {
-		case '#': // Comment. Fall through
-		case 'u': // Fall through
-		case 's': // Fall through
-		case 'g': // Group. Not supported. Fall through
-		default:
-			std::getline(objFile, line); // Skip to the next line
-			break;
-		case 'v':
-			char secondChar;
-			objFile.get(secondChar); // The next character determines what type of vertex we are loading
-			switch(secondChar)
+		std::vector<std::string> tokens;
+
+		std::getline(objFile, line, '\n');
+		std::size_t start = 0;
+		std::size_t end = line.length();
+		std::size_t foundDelimiterPos = 0;
+		while (std::string::npos != (foundDelimiterPos = line.find_first_of(' ', start)))
+		{
+			if (foundDelimiterPos > start)
 			{
-			case ' ': // Loading vertices
-				vertex = ReadObjVertexCoords(objFile);
-				m_vertices.push_back(vertex);
-				break;
-			case 'n': // Loading normals
-				has_normals = true;
-				vertex = ReadObjVertexCoords(objFile);
-                m_normals.push_back(vertex);
-				break;
-			case 't': // Loading UVs
-				has_uvs = true;
-				texture = ReadObjTextureCoords(objFile);
-				m_uvs.push_back(texture);
-				break;
-			default: // Uh oh... What are we trying to read here? Someone screwed up their OBJ exporter...
-				std::cout << "Invalid vertex type: " << "v" << secondChar << " Should be of type \"v \", \"vn\" or \"vt\"." << std::endl;
-				return;
-				break;
+				tokens.push_back(line.substr(start, foundDelimiterPos - start));
+				start = foundDelimiterPos + 1;
 			}
-			break;
-		case 'f':
-			ObjFace face;
-			face.Valid = false;
-			if(has_normals && has_uvs) {
-				face = ReadObjFaceWithNormalsAndTexture(objFile);
-			} else if(has_normals && !has_uvs) {
-				face = ReadObjFaceWithNormals(objFile);
-			} else if(!has_normals && has_uvs) {
-				face = ReadObjFaceWithTexture(objFile);
-			} else if(!has_normals && !has_uvs) {
-				face = ReadObjFaceVertexOnly(objFile);
-			}
-			if(face.Valid) {
-				AddTriangledFace(face);
-			}
-			break;
+		}
+		tokens.push_back(line.substr(start, end));
+
+		if (tokens.size() > 0)
+		{
+			EvaluateAndExecuteCommand(std::move(tokens));
+			tokens.clear();
 		}
 	}
  
@@ -105,22 +68,65 @@ void ObjLoader::DumpOBJ(void)
 	}
 }
 
-ObjVertexCoords ObjLoader::ReadObjVertexCoords(std::ifstream& p_file)
+void ObjLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTokens)
 {
-	std::string vertexX;
-	std::getline(p_file, vertexX, ' ');
-	std::string vertexY;
-	std::getline(p_file, vertexY, ' ');
-	std::string vertexZ;
-	std::getline(p_file, vertexZ, '\n');
-	std::size_t foundPos = vertexZ.find(' ');
-	if(std::string::npos != foundPos) {
-		vertexZ = vertexZ.substr(foundPos);
+	if (0 == p_lineTokens[0].compare("mtllib"))
+	{
+		std::string path = p_lineTokens[1];
+		MaterialLoader materialLoader;
+		materialLoader.LoadMaterial(path);
 	}
-	
-	std::stringstream vertexXStream(vertexX);
-	std::stringstream vertexYStream(vertexY);
-	std::stringstream vertexZStream(vertexZ);
+	else if (0 == p_lineTokens[0].compare("v")) // Add position vertex
+	{
+		if (4 == p_lineTokens.size())
+		{
+			ObjVertexCoords vertex = ReadObjVertexCoords(std::move(p_lineTokens));
+			m_vertices.push_back(vertex);
+		}
+	}
+	else if (0 == p_lineTokens[0].compare("vn")) // Add normal
+	{
+		if (4 == p_lineTokens.size())
+		{
+			ObjVertexCoords vertex = ReadObjVertexCoords(std::move(p_lineTokens));
+			m_normals.push_back(vertex);
+		}
+	}
+	else if (0 == p_lineTokens[0].compare("vt")) // Add texture
+	{
+		if (3 == p_lineTokens.size())
+		{
+			ObjTextureCoords texture = ReadObjTextureCoords(std::move(p_lineTokens));
+			m_uvs.push_back(texture);
+		}
+	}
+	else if (0 == p_lineTokens[0].compare("f")) // Add face
+	{
+		ObjFace face;
+		face.Valid = false;
+		if (m_normals.size() > 0 && m_uvs.size() > 0) {
+			face = ReadObjFaceWithNormalsAndTexture(std::move(p_lineTokens));
+		}
+		else if (m_normals.size() > 0 && 0 == m_uvs.size()) {
+			face = ReadObjFaceWithNormals(std::move(p_lineTokens));
+		}
+		else if (0 == m_normals.size() && m_uvs.size() > 0) {
+			face = ReadObjFaceWithTexture(std::move(p_lineTokens));
+		}
+		else if (0 == m_normals.size() && 0 == m_uvs.size()) {
+			face = ReadObjFaceVertexOnly(std::move(p_lineTokens));
+		}
+		if (face.Valid) {
+			AddTriangledFace(face);
+		}
+	}
+}
+
+ObjVertexCoords ObjLoader::ReadObjVertexCoords(std::vector<std::string> p_lineTokens)
+{
+	std::stringstream vertexXStream(p_lineTokens[1]);
+	std::stringstream vertexYStream(p_lineTokens[2]);
+	std::stringstream vertexZStream(p_lineTokens[3]);
 
 	ObjVertexCoords vertex;
 	vertexXStream >> vertex.X;
@@ -130,21 +136,10 @@ ObjVertexCoords ObjLoader::ReadObjVertexCoords(std::ifstream& p_file)
 	return vertex;
 }
 
-ObjTextureCoords ObjLoader::ReadObjTextureCoords(std::ifstream& p_file)
+ObjTextureCoords ObjLoader::ReadObjTextureCoords(std::vector<std::string> p_lineTokens)
 {
-	std::string ignore;
-	std::getline(p_file, ignore, ' ');
-	std::string textureU;
-	std::getline(p_file, textureU, ' ');
-	std::string textureV;
-	std::getline(p_file, textureV, ' ');
-	std::size_t foundPos = textureV.find(' ');
-	if(std::string::npos != foundPos) {
-		textureV = textureV.substr(foundPos);
-	}
-
-	std::stringstream textureUStream(textureU);
-	std::stringstream textureVStream(textureV);
+	std::stringstream textureUStream(p_lineTokens[1]);
+	std::stringstream textureVStream(p_lineTokens[2]);
 
 	ObjTextureCoords texture;
 	textureUStream >> texture.U;
@@ -153,53 +148,40 @@ ObjTextureCoords ObjLoader::ReadObjTextureCoords(std::ifstream& p_file)
 	return texture;
 }
 
-ObjFace ObjLoader::ReadObjFaceWithNormalsAndTexture(std::ifstream& p_file)
+ObjFace ObjLoader::ReadObjFaceWithNormalsAndTexture(std::vector<std::string> p_lineTokens)
 {
-	std::string faceLine;
-	std::getline(p_file, faceLine, '\n');
-	std::size_t countSlashes = std::count(faceLine.begin(), faceLine.end(), '/');
-	std::size_t countSpaces = std::count(faceLine.begin(), faceLine.end(), ' ');
 	ObjFace face;
-	if(countSlashes > (2 * countSpaces)) {
-		std::cout << "ReadObjFaceWithNormalsAndTexture: Invalid number of slashes." << std::endl;
-		face.Valid = false;
-	}
-	else if (0 == countSlashes)
-	{
-		face.Valid = false;
-	}
-	else {
-		face.Valid = true;
-		int vertIndex = 0;
-		int uvIndex = 0;
-        int normalIndex = 0;
-		std::size_t foundPosSlash1 = 0;
-		std::size_t foundPosSlash2 = 0;
-		std::size_t foundPosSpace = 0;
-		std::size_t foundNextPosSpace = 0;
-	    for (unsigned int i = 0; foundNextPosSpace < faceLine.length(); i ++) {
-		    foundPosSlash1 = faceLine.find('/', foundPosSlash1);
-			foundPosSlash2 = faceLine.find('/', foundPosSlash1 + 1);
-			foundPosSpace = faceLine.find(' ', foundPosSpace);
-			foundNextPosSpace = faceLine.find(' ', foundPosSpace + 1);
-			if(std::string::npos == foundNextPosSpace) {
-				foundNextPosSpace = faceLine.length();
-			}
+	face.Valid = false;
 
-			unsigned short vertIndexPos = foundPosSpace + 1;
+	for each(std::string token in p_lineTokens)
+	{
+		std::size_t countSlashes = std::count(token.begin(), token.end(), '/');
+		if (countSlashes > 2)
+		{
+			std::cout << "ReadObjFaceWithNormalsAndTexture: Invalid number of slashes." << std::endl;
+		}
+		else if (countSlashes > 0)
+		{
+			face.Valid = true;
+			int vertIndex = 0;
+			int uvIndex = 0;
+			int normalIndex = 0;
+
+			std::size_t foundPosSlash1 = token.find('/', 0);
+			std::size_t foundPosSlash2 = token.find('/', foundPosSlash1 + 1);
+			
+			unsigned short vertIndexPos = 0;
 			unsigned short uvIndexPos = foundPosSlash1 + 1;
 			unsigned short normalIndexPos = foundPosSlash2 + 1;
 
 			unsigned short vertIndexSize = foundPosSlash1 - vertIndexPos;
 			unsigned short uvIndexSize = foundPosSlash2 - uvIndexPos;
-			unsigned short normalIndexSize = foundNextPosSpace - normalIndexPos;
+			unsigned short normalIndexSize = token.length() - normalIndexPos;
 
-			std::stringstream vertIndexStream(faceLine.substr(vertIndexPos, vertIndexSize));
-	        std::stringstream uvIndexStream(faceLine.substr(uvIndexPos, uvIndexSize));
-			std::stringstream normalIndexStream(faceLine.substr(normalIndexPos, normalIndexSize));
-			
-			foundPosSlash1 = foundPosSlash2 + 1;
-			foundPosSpace = foundNextPosSpace;
+			std::stringstream vertIndexStream(token.substr(vertIndexPos, vertIndexSize));
+			std::stringstream uvIndexStream(token.substr(uvIndexPos, uvIndexSize));
+			std::stringstream normalIndexStream(token.substr(normalIndexPos, normalIndexSize));
+
 			vertIndexStream >> vertIndex;
 			uvIndexStream >> uvIndex;
 			normalIndexStream >> normalIndex;
@@ -215,47 +197,34 @@ ObjFace ObjLoader::ReadObjFaceWithNormalsAndTexture(std::ifstream& p_file)
 	return face;
 }
 
-ObjFace ObjLoader::ReadObjFaceWithNormals(std::ifstream& p_file)
+ObjFace ObjLoader::ReadObjFaceWithNormals(std::vector<std::string> p_lineTokens)
 {
-	std::string faceLine;
-	std::getline(p_file, faceLine, '\n');
-	std::size_t countSlashes = std::count(faceLine.begin(), faceLine.end(), '/');
-	std::size_t countSpaces = std::count(faceLine.begin(), faceLine.end(), ' ');
 	ObjFace face;
-	if(countSlashes > (2 * countSpaces)) {
-		std::cout << "ReadObjFaceWithNormals: Invalid number of slashes." << std::endl;
-		face.Valid = false;
-	}
-	else if (0 == countSlashes)
-	{
-		face.Valid = false;
-	}
-	else {
-		face.Valid = true;
-		int vertIndex = 0;
-        int normalIndex = 0;
-		std::size_t foundPosSlash = 0;
-		std::size_t foundPosSpace = 0;
-		std::size_t foundNextPosSpace = 0;
-	    for (unsigned int i = 0; foundNextPosSpace < faceLine.length(); i ++) {
-		    foundPosSlash = faceLine.find('/', foundPosSlash);
-			foundPosSpace = faceLine.find(' ', foundPosSpace);
-			foundNextPosSpace = faceLine.find(' ', foundPosSpace + 1);
-			if(std::string::npos == foundNextPosSpace) {
-				foundNextPosSpace = faceLine.length();
-			}
+	face.Valid = false;
 
-			unsigned short vertIndexPos = foundPosSpace + 1;
+	for each(std::string token in p_lineTokens)
+	{
+		std::size_t countSlashes = std::count(token.begin(), token.end(), '/');
+		if (countSlashes > 2)
+		{
+			std::cout << "ReadObjFaceWithNormals: Invalid number of slashes." << std::endl;
+		}
+		else if (countSlashes > 0)
+		{
+			face.Valid = true;
+			int vertIndex = 0;
+			int normalIndex = 0;
+			std::size_t foundPosSlash = token.find('/', 0);
+
+			unsigned short vertIndexPos = 0;
 			unsigned short normalIndexPos = foundPosSlash + 2;
 
 			unsigned short vertIndexSize = foundPosSlash - vertIndexPos;
-			unsigned short normalIndexSize = foundNextPosSpace - normalIndexPos;
+			unsigned short normalIndexSize = token.length() - normalIndexPos;
 
-			std::stringstream vertIndexStream(faceLine.substr(vertIndexPos, vertIndexSize));
-	        std::stringstream normalIndexStream(faceLine.substr(normalIndexPos, normalIndexSize));
-			
-			foundPosSlash += 2;
-			foundPosSpace = foundNextPosSpace;
+			std::stringstream vertIndexStream(token.substr(vertIndexPos, vertIndexSize));
+			std::stringstream normalIndexStream(token.substr(normalIndexPos, normalIndexSize));
+
 			vertIndexStream >> vertIndex;
 			normalIndexStream >> normalIndex;
 
@@ -269,47 +238,34 @@ ObjFace ObjLoader::ReadObjFaceWithNormals(std::ifstream& p_file)
 	return face;
 }
 
-ObjFace ObjLoader::ReadObjFaceWithTexture(std::ifstream& p_file)
+ObjFace ObjLoader::ReadObjFaceWithTexture(std::vector<std::string> p_lineTokens)
 {
-	std::string faceLine;
-	std::getline(p_file, faceLine, '\n');
-	std::size_t countSlashes = std::count(faceLine.begin(), faceLine.end(), '/');
-	std::size_t countSpaces = std::count(faceLine.begin(), faceLine.end(), ' ');
 	ObjFace face;
-	if(countSlashes > countSpaces) {
-		std::cout << "ReadObjFaceWithTexture: Invalid vertex index." << std::endl;
-		face.Valid = false;
-	}
-	else if (0 == countSlashes)
-	{
-		face.Valid = false;
-	}
-	else {
-		face.Valid = true;
-		int vertIndex = 0;
-        int uvIndex = 0;
-		std::size_t foundPosSlash = 0;
-		std::size_t foundPosSpace = 0;
-		std::size_t foundNextPosSpace = 0;
-		for (unsigned int i = 0; foundNextPosSpace < faceLine.length(); i++) {
-		    foundPosSlash = faceLine.find('/', foundPosSlash);
-			foundPosSpace = faceLine.find(' ', foundPosSpace);
-			foundNextPosSpace = faceLine.find(' ', foundPosSpace + 1);
-			if(std::string::npos == foundNextPosSpace) {
-				foundNextPosSpace = faceLine.length();
-			}
+	face.Valid = false;
 
-			unsigned short vertIndexPos = foundPosSpace + 1;
+	for each(std::string token in p_lineTokens)
+	{
+		std::size_t countSlashes = std::count(token.begin(), token.end(), '/');
+		if (countSlashes > 1)
+		{
+			std::cout << "ReadObjFaceWithTexture: Invalid number of slashes." << std::endl;
+		}
+		else if (countSlashes > 0)
+		{
+			face.Valid = true;
+			int vertIndex = 0;
+			int uvIndex = 0;
+			std::size_t foundPosSlash = token.find('/', 0);
+
+			unsigned short vertIndexPos = 0;
 			unsigned short uvIndexPos = foundPosSlash + 1;
 
 			unsigned short vertIndexSize = foundPosSlash - vertIndexPos;
-			unsigned short uvIndexSize = foundNextPosSpace - uvIndexPos;
+			unsigned short uvIndexSize = token.length() - uvIndexPos;
 
-			std::stringstream vertIndexStream(faceLine.substr(vertIndexPos, vertIndexSize));
-	        std::stringstream uvIndexStream(faceLine.substr(uvIndexPos, uvIndexSize));
-			
-			foundPosSlash++;
-			foundPosSpace = foundNextPosSpace;
+			std::stringstream vertIndexStream(token.substr(vertIndexPos, vertIndexSize));
+			std::stringstream uvIndexStream(token.substr(uvIndexPos, uvIndexSize));
+
 			vertIndexStream >> vertIndex;
 			uvIndexStream >> uvIndex;
 
@@ -323,33 +279,25 @@ ObjFace ObjLoader::ReadObjFaceWithTexture(std::ifstream& p_file)
 	return face;
 }
 
-ObjFace ObjLoader::ReadObjFaceVertexOnly(std::ifstream& p_file)
+ObjFace ObjLoader::ReadObjFaceVertexOnly(std::vector<std::string> p_lineTokens)
 {
-	std::string faceLine;
-	std::getline(p_file, faceLine, '\n');
-	std::size_t countSpaces = std::count(faceLine.begin(), faceLine.end(), ' ');
 	ObjFace face;
 	face.Valid = true;
 	int vertIndex = 0;
 
-	std::size_t foundPosSpace = 0;
-	for (unsigned int i = 0; i < countSpaces; i ++) {
-		foundPosSpace = faceLine.find(' ', foundPosSpace);
-		std::size_t foundNextPosSpace = faceLine.find(' ', foundPosSpace + 1);
-		if(std::string::npos == foundNextPosSpace) {
-			foundNextPosSpace = faceLine.length();
+	for each(std::string token in p_lineTokens)
+	{
+		if (0 != p_lineTokens[0].compare("f"))
+		{
+			std::stringstream vertIndexStream(token.substr(0, token.length()));
+
+			vertIndexStream >> vertIndex;
+
+			ObjFaceIndices indices;
+			indices.VertexIndex = vertIndex - 1;
+			face.Indices.push_back(indices);
 		}
-		unsigned int vertIndexSize = foundNextPosSpace - foundPosSpace - 1;
-		std::stringstream vertIndexStream(faceLine.substr(foundPosSpace + 1, vertIndexSize));
-			
-		foundPosSpace++;
-		vertIndexStream >> vertIndex;
-
-		ObjFaceIndices indices;
-		indices.VertexIndex = vertIndex - 1;
-		face.Indices.push_back(indices);
 	}
-
 	return face;
 }
 
