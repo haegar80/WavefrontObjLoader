@@ -8,13 +8,13 @@ class MaterialLoader
 {
 public:
 	MaterialLoader();
-	~MaterialLoader() = default;
+	virtual ~MaterialLoader();
 
 	void LoadMaterial(std::string& p_fileName);
 
 	Material* GetMaterialByName(std::string& p_name);
 
 private:
-	std::vector<Material*> m_Materials;
+	std::vector<Material*> m_materials;
 };
 

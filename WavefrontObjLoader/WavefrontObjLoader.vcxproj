@@ -136,10 +136,12 @@
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ObjectLoader\Mesh.cpp" />
     <ClCompile Include="ObjectLoader\MaterialLoader.cpp" />
     <ClCompile Include="ObjectLoader\Material.cpp" />
     <ClCompile Include="ObjectLoader\ObjLoader.cpp" />
     <ClCompile Include="Rendering\MapRenderer.cpp" />
+    <ClCompile Include="ObjectLoader\SubMesh.cpp" />
     <ClCompile Include="UI\GLWidget.cpp" />
     <ClCompile Include="UI\WavefrontObjLoader.cpp" />
   </ItemGroup>
@@ -159,10 +161,12 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ObjectLoader\Mesh.h" />
     <ClInclude Include="ObjectLoader\MaterialLoader.h" />
     <ClInclude Include="ObjectLoader\Material.h" />
     <ClInclude Include="ObjectLoader\ObjLoader.h" />
     <ClInclude Include="Rendering\MapRenderer.h" />
+    <ClInclude Include="ObjectLoader\SubMesh.h" />
     <ClInclude Include="UI\GLWidget.h" />
   </ItemGroup>
   <ItemGroup>

@@ -4,6 +4,15 @@
 
 MaterialLoader::MaterialLoader()
 {
+	m_materials.push_back(new Material(std::string("default")));
+}
+
+MaterialLoader::~MaterialLoader()
+{
+	for each(Material* material in m_materials)
+	{
+		delete material;
+	}
 }
 
 void MaterialLoader::LoadMaterial(std::string& p_fileName)
@@ -26,7 +35,7 @@ void MaterialLoader::LoadMaterial(std::string& p_fileName)
 			if (0 == command.compare("newmtl"))
 			{
 				std::string name = line.substr(foundPosSpace + 1, line.length() - (foundPosSpace + 1));
-				m_Materials.push_back(new Material(name));
+				m_materials.push_back(new Material(name));
 			}
 		}
 
@@ -38,7 +47,7 @@ void MaterialLoader::LoadMaterial(std::string& p_fileName)
 Material* MaterialLoader::GetMaterialByName(std::string& p_name)
 {
 	Material* foundMaterial{ nullptr };
-	for each (Material* material in m_Materials)
+	for each (Material* material in m_materials)
 	{
 		if (0 == material->getName().compare(p_name))
 		{

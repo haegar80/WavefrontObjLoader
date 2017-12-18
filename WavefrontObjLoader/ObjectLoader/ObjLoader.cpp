@@ -6,6 +6,18 @@
   
 ObjLoader::ObjLoader()
 {
+	m_currentMaterial = m_materialLoader.GetMaterialByName(std::string("default"));
+	Mesh* mesh = new Mesh;
+	m_currentMesh = mesh;
+	m_meshes.push_back(mesh);
+}
+
+ObjLoader::~ObjLoader()
+{
+	for each(Mesh* mesh in m_meshes)
+	{
+		delete mesh;
+	}
 }
  
 void ObjLoader::LoadOBJ(std::string p_fileName)
@@ -47,30 +59,17 @@ void ObjLoader::LoadOBJ(std::string p_fileName)
  
 	objFile.close();
 }
- 
-void ObjLoader::DumpOBJ(void)
-{
-	std::cout << "Dump *.obj content" << std::endl;
-	for(unsigned long i = 0; i < m_vertices.size(); i++) {
-		std::cout << m_vertices.at(i).X << " " << m_vertices.at(i).Y << " " << m_vertices.at(i).Z << std::endl;
-	}
-	for(unsigned long i = 0; i < m_normals.size(); i++) {
-		std::cout << m_normals.at(i).X << " " << m_normals.at(i).Y << " " << m_normals.at(i).Z << std::endl;
-	}
-	for(unsigned long i = 0; i < m_uvs.size(); i++) {
-		std::cout << m_uvs.at(i).U << " " << m_uvs.at(i).V << std::endl;
-	}
-	for(unsigned long i = 0; i < m_faces.size(); i++) {
-		for(unsigned long j = 0; j < m_faces.at(i).Indices.size(); j++) {
-			std::cout << m_faces.at(i).Indices.at(j).VertexIndex << "/" << m_faces.at(i).Indices.at(j).TextureIndex << "/" << m_faces.at(i).Indices.at(j).NormalIndex << " ";
-            std::cout << std::endl;
-		}
-	}
-}
 
 void ObjLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTokens)
 {
-	if (0 == p_lineTokens[0].compare("mtllib"))
+	if (0 == p_lineTokens[0].compare("o"))
+	{
+		std::string meshName = p_lineTokens[1];
+		Mesh* mesh = new Mesh(meshName);
+		m_currentMesh = mesh;
+		m_meshes.push_back(mesh);
+	}
+	else if(0 == p_lineTokens[0].compare("mtllib"))
 	{
 		if (2 == p_lineTokens.size())
 		{
@@ -86,8 +85,6 @@ void ObjLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTokens)
 			Material* currentMaterial = m_materialLoader.GetMaterialByName(materialName);
 			if (nullptr != currentMaterial) {
 				m_currentMaterial = currentMaterial;
-				std::vector<ObjFace> faces;
-				m_facesPerMaterial.insert(std::make_pair(currentMaterial, faces));
 			}
 		}
 	}
@@ -95,87 +92,81 @@ void ObjLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTokens)
 	{
 		if (4 == p_lineTokens.size())
 		{
-			ObjVertexCoords vertex = ReadObjVertexCoords(std::move(p_lineTokens));
-			m_vertices.push_back(vertex);
-		}
-	}
-	else if (0 == p_lineTokens[0].compare("v")) // Add position vertex
-	{
-		if (4 == p_lineTokens.size())
-		{
-			ObjVertexCoords vertex = ReadObjVertexCoords(std::move(p_lineTokens));
-			m_vertices.push_back(vertex);
+			ReadObjVertexCoords(std::move(p_lineTokens), true);
 		}
 	}
 	else if (0 == p_lineTokens[0].compare("vn")) // Add normal
 	{
 		if (4 == p_lineTokens.size())
 		{
-			ObjVertexCoords vertex = ReadObjVertexCoords(std::move(p_lineTokens));
-			m_normals.push_back(vertex);
+			ReadObjVertexCoords(std::move(p_lineTokens), false);
+			m_hasNormals = true;
 		}
 	}
 	else if (0 == p_lineTokens[0].compare("vt")) // Add texture
 	{
 		if (3 == p_lineTokens.size())
 		{
-			ObjTextureCoords texture = ReadObjTextureCoords(std::move(p_lineTokens));
-			m_uvs.push_back(texture);
+			ReadObjTextureCoords(std::move(p_lineTokens));
+			m_hasTextures = true;
 		}
 	}
 	else if (0 == p_lineTokens[0].compare("f")) // Add face
 	{
-		ObjFace face;
-		face.Valid = false;
-		if (m_normals.size() > 0 && m_uvs.size() > 0) {
-			face = ReadObjFaceWithNormalsAndTexture(std::move(p_lineTokens));
+		if (m_hasNormals && m_hasTextures) {
+			ReadObjFaceWithNormalsAndTexture(std::move(p_lineTokens));
 		}
-		else if (m_normals.size() > 0 && 0 == m_uvs.size()) {
-			face = ReadObjFaceWithNormals(std::move(p_lineTokens));
+		else if (m_hasNormals && !m_hasTextures) {
+			ReadObjFaceWithNormals(std::move(p_lineTokens));
 		}
-		else if (0 == m_normals.size() && m_uvs.size() > 0) {
-			face = ReadObjFaceWithTexture(std::move(p_lineTokens));
+		else if (!m_hasNormals && m_hasTextures) {
+			ReadObjFaceWithTexture(std::move(p_lineTokens));
 		}
-		else if (0 == m_normals.size() && 0 == m_uvs.size()) {
-			face = ReadObjFaceVertexOnly(std::move(p_lineTokens));
-		}
-		if (face.Valid) {
-			AddTriangledFace(face);
+		else if (!m_hasNormals && !m_hasTextures) {
+			ReadObjFaceVertexOnly(std::move(p_lineTokens));
 		}
 	}
 }
 
-ObjVertexCoords ObjLoader::ReadObjVertexCoords(std::vector<std::string> p_lineTokens)
+void ObjLoader::ReadObjVertexCoords(std::vector<std::string> p_lineTokens, bool p_isPosition)
 {
 	std::stringstream vertexXStream(p_lineTokens[1]);
 	std::stringstream vertexYStream(p_lineTokens[2]);
 	std::stringstream vertexZStream(p_lineTokens[3]);
 
-	ObjVertexCoords vertex;
-	vertexXStream >> vertex.X;
-	vertexYStream >> vertex.Y;
-	vertexZStream >> vertex.Z;
+	float x;
+	float y;
+	float z;
 
-	return vertex;
+	vertexXStream >> x;
+	vertexYStream >> y;
+	vertexZStream >> z;
+
+	if (p_isPosition) {
+		m_currentMesh->AddVertices(x, y, z);
+	}
+	else {
+		m_currentMesh->AddNormals(x, y, z);
+	}
 }
 
-ObjTextureCoords ObjLoader::ReadObjTextureCoords(std::vector<std::string> p_lineTokens)
+void ObjLoader::ReadObjTextureCoords(std::vector<std::string> p_lineTokens)
 {
 	std::stringstream textureUStream(p_lineTokens[1]);
 	std::stringstream textureVStream(p_lineTokens[2]);
 
-	ObjTextureCoords texture;
-	textureUStream >> texture.U;
-	textureVStream >> texture.V;
+	float u;
+	float v;
 
-	return texture;
+	textureUStream >> u;
+	textureVStream >> v;
+
+	m_currentMesh->AddTextures(u, v);
 }
 
-ObjFace ObjLoader::ReadObjFaceWithNormalsAndTexture(std::vector<std::string> p_lineTokens)
+void ObjLoader::ReadObjFaceWithNormalsAndTexture(std::vector<std::string> p_lineTokens)
 {
-	ObjFace face;
-	face.Valid = false;
-
+	bool needsCreatingFace = true;
 	for each(std::string token in p_lineTokens)
 	{
 		std::size_t countSlashes = std::count(token.begin(), token.end(), '/');
@@ -185,7 +176,12 @@ ObjFace ObjLoader::ReadObjFaceWithNormalsAndTexture(std::vector<std::string> p_l
 		}
 		else if (countSlashes > 0)
 		{
-			face.Valid = true;
+			if (needsCreatingFace)
+			{
+				m_currentMesh->AddFace(m_currentMaterial);
+				needsCreatingFace = false;
+			}
+
 			int vertIndex = 0;
 			int uvIndex = 0;
 			int normalIndex = 0;
@@ -209,22 +205,14 @@ ObjFace ObjLoader::ReadObjFaceWithNormalsAndTexture(std::vector<std::string> p_l
 			uvIndexStream >> uvIndex;
 			normalIndexStream >> normalIndex;
 
-			ObjFaceIndices indices;
-			indices.VertexIndex = vertIndex - 1;
-			indices.TextureIndex = uvIndex - 1;
-			indices.NormalIndex = normalIndex - 1;
-			face.Indices.push_back(indices);
+			m_currentMesh->AddFaceIndices(vertIndex - 1, uvIndex - 1, normalIndex - 1);
 		}
 	}
-
-	return face;
 }
 
-ObjFace ObjLoader::ReadObjFaceWithNormals(std::vector<std::string> p_lineTokens)
+void ObjLoader::ReadObjFaceWithNormals(std::vector<std::string> p_lineTokens)
 {
-	ObjFace face;
-	face.Valid = false;
-
+	bool needsCreatingFace = true;
 	for each(std::string token in p_lineTokens)
 	{
 		std::size_t countSlashes = std::count(token.begin(), token.end(), '/');
@@ -234,7 +222,12 @@ ObjFace ObjLoader::ReadObjFaceWithNormals(std::vector<std::string> p_lineTokens)
 		}
 		else if (countSlashes > 0)
 		{
-			face.Valid = true;
+			if (needsCreatingFace)
+			{
+				m_currentMesh->AddFace(m_currentMaterial);
+				needsCreatingFace = false;
+			}
+
 			int vertIndex = 0;
 			int normalIndex = 0;
 			std::size_t foundPosSlash = token.find('/', 0);
@@ -251,21 +244,14 @@ ObjFace ObjLoader::ReadObjFaceWithNormals(std::vector<std::string> p_lineTokens)
 			vertIndexStream >> vertIndex;
 			normalIndexStream >> normalIndex;
 
-			ObjFaceIndices indices;
-			indices.VertexIndex = vertIndex - 1;
-			indices.NormalIndex = normalIndex - 1;
-			face.Indices.push_back(indices);
+			m_currentMesh->AddFaceIndices(vertIndex - 1, 0, normalIndex - 1);
 		}
 	}
-
-	return face;
 }
 
-ObjFace ObjLoader::ReadObjFaceWithTexture(std::vector<std::string> p_lineTokens)
+void ObjLoader::ReadObjFaceWithTexture(std::vector<std::string> p_lineTokens)
 {
-	ObjFace face;
-	face.Valid = false;
-
+	bool needsCreatingFace = true;
 	for each(std::string token in p_lineTokens)
 	{
 		std::size_t countSlashes = std::count(token.begin(), token.end(), '/');
@@ -275,7 +261,12 @@ ObjFace ObjLoader::ReadObjFaceWithTexture(std::vector<std::string> p_lineTokens)
 		}
 		else if (countSlashes > 0)
 		{
-			face.Valid = true;
+			if (needsCreatingFace)
+			{
+				m_currentMesh->AddFace(m_currentMaterial);
+				needsCreatingFace = false;
+			}
+
 			int vertIndex = 0;
 			int uvIndex = 0;
 			std::size_t foundPosSlash = token.find('/', 0);
@@ -292,69 +283,31 @@ ObjFace ObjLoader::ReadObjFaceWithTexture(std::vector<std::string> p_lineTokens)
 			vertIndexStream >> vertIndex;
 			uvIndexStream >> uvIndex;
 
-			ObjFaceIndices indices;
-			indices.VertexIndex = vertIndex - 1;
-			indices.TextureIndex = uvIndex - 1;
-			face.Indices.push_back(indices);
+			m_currentMesh->AddFaceIndices(vertIndex - 1, uvIndex - 1, 0);
 		}
 	}
-
-	return face;
 }
 
-ObjFace ObjLoader::ReadObjFaceVertexOnly(std::vector<std::string> p_lineTokens)
+void ObjLoader::ReadObjFaceVertexOnly(std::vector<std::string> p_lineTokens)
 {
-	ObjFace face;
-	face.Valid = true;
+	bool needsCreatingFace = true;
 	int vertIndex = 0;
 
 	for each(std::string token in p_lineTokens)
 	{
 		if (0 != p_lineTokens[0].compare("f"))
 		{
+			if (needsCreatingFace)
+			{
+				m_currentMesh->AddFace(m_currentMaterial);
+				needsCreatingFace = false;
+			}
+
 			std::stringstream vertIndexStream(token.substr(0, token.length()));
 
 			vertIndexStream >> vertIndex;
 
-			ObjFaceIndices indices;
-			indices.VertexIndex = vertIndex - 1;
-			face.Indices.push_back(indices);
-		}
-	}
-	return face;
-}
-
-void ObjLoader::AddTriangledFace(ObjFace p_originalFace)
-{
-	ObjFace triangledFace1;
-	ObjFaceIndices indices0 = p_originalFace.Indices.at(0);
-	ObjFaceIndices indices1 = p_originalFace.Indices.at(1);
-	ObjFaceIndices indices2 = p_originalFace.Indices.at(2);
-	triangledFace1.Indices.push_back(indices0);
-	triangledFace1.Indices.push_back(indices1);
-	triangledFace1.Indices.push_back(indices2);
-
-	m_faces.push_back(triangledFace1);
-	if (nullptr != m_currentMaterial) {
-		m_facesPerMaterial.at(m_currentMaterial).push_back(triangledFace1);
-	}
-
-	constexpr uint8_t TriangleSize = 3;
-	if (p_originalFace.Indices.size() > TriangleSize)
-	{
-		for (int i = 3; i < p_originalFace.Indices.size(); i++)
-		{
-			ObjFace triangledFaceN;
-			indices1 = indices2;
-			indices2 = p_originalFace.Indices.at(i);
-			triangledFaceN.Indices.push_back(indices0);
-			triangledFaceN.Indices.push_back(indices1);
-			triangledFaceN.Indices.push_back(indices2);
-
-			m_faces.push_back(triangledFaceN);
-			if (nullptr != m_currentMaterial) {
-				m_facesPerMaterial.at(m_currentMaterial).push_back(triangledFace1);
-			}
+			m_currentMesh->AddFaceIndices(vertIndex - 1, 0, 0);
 		}
 	}
 }

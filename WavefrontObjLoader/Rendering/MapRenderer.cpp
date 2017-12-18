@@ -105,21 +105,28 @@ void MapRenderer::initMap(QOpenGLShaderProgram* p_shaderProgram)
 
 void MapRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 {
-	std::vector<ObjFace> faces = mc_objLoader.GetFaces();
 	std::vector<ObjVertexCoords> vertices = getScaledVerticesFromWavefrontModel();
 
 	m_wavefrontModelArrayBuffer.bind();
 	m_wavefrontModelArrayBuffer.allocate(vertices.data(), vertices.size() * sizeof(ObjVertexCoords));
 
+	std::vector<Mesh*> meshes = mc_objLoader.GetMeshes();
 	std::vector<unsigned short> vertexIndices;
 
-	for each (ObjFace face in faces)
+	for each(Mesh* mesh in meshes)
 	{
-		for each(ObjFaceIndices index in face.Indices)
+		for each(SubMesh* submesh in mesh->GetSubmeshes())
 		{
-			vertexIndices.push_back(index.VertexIndex);
+			for each(ObjFace face in submesh->GetFaces())
+			{
+				for each(ObjFaceIndices index in face.Indices)
+				{
+					vertexIndices.push_back(index.VertexIndex);
+				}
+			}
 		}
 	}
+	
 	m_wavefrontModelIndexCount = vertexIndices.size();
 	
 	m_wavefrontModelIndexArrayBuffer.bind();
@@ -149,50 +156,51 @@ void MapRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 
 std::vector<ObjVertexCoords> MapRenderer::getScaledVerticesFromWavefrontModel()
 {
-	std::vector<ObjVertexCoords> vertices = mc_objLoader.GetVertices();
-
-	float minX = 0.0f;
-	float minY = 0.0f;
-	float maxX = 0.0f;
-	float maxY = 0.0f;
-	for each(ObjVertexCoords vertex in vertices)
-	{
-		if (vertex.X > maxX)
-		{
-			maxX = vertex.X;
-		}
-		else if (vertex.X < minX)
-		{
-			minX = vertex.X;
-		}
-		if (vertex.Y > maxY)
-		{
-			maxY = vertex.Y;
-		}
-		else if (vertex.Y < minY)
-		{
-			minY = vertex.Y;
-		}
-	}
-
-	float differenceX = maxX - minX;
-	float differenceY = maxY - minY;
-
-	float scaleFactorX = m_width / differenceX;
-	float scaleFactorY = m_height / differenceY;
-	float moveToCenterX = minX * scaleFactorX;
-	float moveToCenterY = minY * scaleFactorY;
-
 	std::vector<ObjVertexCoords> scaledVertices;
+	for each(Mesh* mesh in mc_objLoader.GetMeshes()) {
+		std::vector<ObjVertexCoords> vertices = mesh->GetVertices();
 
-	for each(ObjVertexCoords vertex in vertices)
-	{
-		ObjVertexCoords scaledVertex;
-		scaledVertex.X = vertex.X * scaleFactorX - moveToCenterX;
-		scaledVertex.Y = vertex.Y * scaleFactorY - moveToCenterY;
-		scaledVertex.Z = vertex.Z;
-		scaledVertices.push_back(scaledVertex);
+		float minX = 0.0f;
+		float minY = 0.0f;
+		float maxX = 0.0f;
+		float maxY = 0.0f;
+		for each(ObjVertexCoords vertex in vertices)
+		{
+			if (vertex.X > maxX)
+			{
+				maxX = vertex.X;
+			}
+			else if (vertex.X < minX)
+			{
+				minX = vertex.X;
+			}
+			if (vertex.Y > maxY)
+			{
+				maxY = vertex.Y;
+			}
+			else if (vertex.Y < minY)
+			{
+				minY = vertex.Y;
+			}
+		}
+
+		float differenceX = maxX - minX;
+		float differenceY = maxY - minY;
+
+		float scaleFactorX = m_width / differenceX;
+		float scaleFactorY = m_height / differenceY;
+		float moveToCenterX = minX * scaleFactorX;
+		float moveToCenterY = minY * scaleFactorY;
+
+		for each(ObjVertexCoords vertex in vertices)
+		{
+			ObjVertexCoords scaledVertex;
+			scaledVertex.X = vertex.X * scaleFactorX - moveToCenterX;
+			scaledVertex.Y = vertex.Y * scaleFactorY - moveToCenterY;
+			scaledVertex.Z = vertex.Z;
+			scaledVertices.push_back(scaledVertex);
+		}
+
 	}
-
 	return scaledVertices;
 }
