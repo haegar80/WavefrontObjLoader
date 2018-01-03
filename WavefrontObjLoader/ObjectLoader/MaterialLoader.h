@@ -16,5 +16,8 @@ public:
 
 private:
 	std::vector<Material*> m_materials;
+
+	void EvaluateAndExecuteCommand(std::vector<std::string> p_lineTokens);
+	MaterialRGBValue ReadRGBValues(std::vector<std::string> p_lineTokens);
 };
 

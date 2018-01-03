@@ -3,10 +3,17 @@
 #include <QtGui/QVector3D>
 #include <string>
 
+struct MaterialRGBValue
+{
+	float R;
+	float G;
+	float B;
+};
+
 class Material
 {
 public:
-	Material(std::string p_name);
+	Material(std::string& p_name);
 	virtual ~Material() = default;
 
 	std::string& getName()
@@ -14,47 +21,41 @@ public:
 		return m_name;
 	}
 
-	QVector3D getAmbientColor()
+	MaterialRGBValue getAmbientColor()
 	{
 		return m_ambientColor;
 	}
 
-	void setAmbientColor(float p_r, float p_g, float p_b)
+	void setAmbientColor(MaterialRGBValue p_rgbValue)
 	{
-		m_ambientColor.setX(p_r);
-		m_ambientColor.setY(p_g);
-		m_ambientColor.setZ(p_b);
+		m_ambientColor = p_rgbValue;
 	}
 
-	QVector3D getDiffuseColor()
+	MaterialRGBValue getDiffuseColor()
 	{
 		return m_diffuseColor;
 	}
 
-	void setDiffuseColor(float p_r, float p_g, float p_b)
+	void setDiffuseColor(MaterialRGBValue p_rgbValue)
 	{
-		m_diffuseColor.setX(p_r);
-		m_diffuseColor.setY(p_g);
-		m_diffuseColor.setZ(p_b);
+		m_diffuseColor = p_rgbValue;
 	}
 
-	QVector3D getSpecularColor()
+	MaterialRGBValue getSpecularColorRGBValue()
 	{
 		return m_specularColor;
 	}
 
-	void setSpecularColor(float p_r, float p_g, float p_b)
+	void setSpecularColor(MaterialRGBValue p_rgbValue)
 	{
-		m_specularColor.setX(p_r);
-		m_specularColor.setY(p_g);
-		m_specularColor.setZ(p_b);
+		m_specularColor = p_rgbValue;
 	}
 
 private:
-	std::string m_name;
+	std::string& m_name;
 
-	QVector3D m_ambientColor;
-	QVector3D m_diffuseColor;
-	QVector3D m_specularColor;
+	MaterialRGBValue m_ambientColor;
+	MaterialRGBValue m_diffuseColor;
+	MaterialRGBValue m_specularColor;
 };
 

@@ -21,6 +21,8 @@ private:
 	MaterialLoader m_materialLoader;
 	Material* m_currentMaterial{ nullptr };
 	Mesh* m_currentMesh{ nullptr };
+	bool m_hasNormals{ false };
+	bool m_hasTextures{ false };
 
 	void EvaluateAndExecuteCommand(std::vector<std::string> p_lineTokens);
 	void ReadObjVertexCoords(std::vector<std::string> p_lineTokens, bool p_isPosition);
@@ -29,7 +31,4 @@ private:
 	void ReadObjFaceWithNormals(std::vector<std::string> p_lineTokens);
 	void ReadObjFaceWithTexture(std::vector<std::string> p_lineTokens);
 	void ReadObjFaceVertexOnly(std::vector<std::string> p_lineTokens);
-
-	bool m_hasNormals{ false };
-	bool m_hasTextures{ false };
 };
