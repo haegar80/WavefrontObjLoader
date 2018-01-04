@@ -110,48 +110,59 @@ void MapRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 	m_wavefrontModelArrayBuffer.bind();
 	m_wavefrontModelArrayBuffer.allocate(vertices.data(), vertices.size() * sizeof(ObjVertexCoords));
 
+	p_shaderProgram->enableAttributeArray(0);
+	p_shaderProgram->setAttributeBuffer(0, GL_FLOAT, 0, 3);
+
 	std::vector<Mesh*> meshes = mc_objLoader.GetMeshes();
 	std::vector<unsigned short> vertexIndices;
 
+	m_subMeshIndices.clear();
 	for each(Mesh* mesh in meshes)
 	{
 		for each(SubMesh* submesh in mesh->GetSubmeshes())
 		{
+			std::vector<unsigned short> indices;
+			m_subMeshIndices.insert(std::make_pair(submesh, indices));
 			for each(ObjFace face in submesh->GetFaces())
 			{
 				for each(ObjFaceIndices index in face.Indices)
 				{
-					vertexIndices.push_back(index.VertexIndex);
+					m_subMeshIndices.at(submesh).push_back(index.VertexIndex);
 				}
 			}
 		}
 	}
-	
-	m_wavefrontModelIndexCount = vertexIndices.size();
-	
-	m_wavefrontModelIndexArrayBuffer.bind();
-	m_wavefrontModelIndexArrayBuffer.allocate(vertexIndices.data(), m_wavefrontModelIndexCount * sizeof(unsigned short));
-
-	m_wavefrontModelArrayBuffer.bind();
-	m_wavefrontModelIndexArrayBuffer.bind();
-	p_shaderProgram->enableAttributeArray(0);
-	p_shaderProgram->setAttributeBuffer(0, GL_FLOAT, 0, 3);
 }
 
 void MapRenderer::renderMap(QOpenGLShaderProgram* p_shaderProgram)
 {
-	QVector3D frontColor(0.0f, 0.3f, 0.0f);
-	p_shaderProgram->setUniformValue("color", frontColor);
+	p_shaderProgram->setUniformValue("material.Ka", QVector3D(0.2f, 0.2f, 0.2f));
+	p_shaderProgram->setUniformValue("material.Kd", QVector3D(0.0f, 0.3f, 0.0f));
+	p_shaderProgram->setUniformValue("material.Ks", QVector3D(0.6f, 0.6f, 0.6f));
+	p_shaderProgram->setUniformValue("material.Shininess", 50.f);
 
 	glDrawArrays(GL_POLYGON, 0, 20);
 }
 
 void MapRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 {
-	QVector3D defaultColor(0.0f, 0.0f, 0.4f);
-	p_shaderProgram->setUniformValue("color", defaultColor);
+	m_wavefrontModelIndexArrayBuffer.bind();
 
-	glDrawElements(GL_TRIANGLES, m_wavefrontModelIndexCount, GL_UNSIGNED_SHORT, 0);
+	for each(std::pair<SubMesh*, std::vector<unsigned short>> submeshData in m_subMeshIndices)
+	{
+		MaterialRGBValue rgbValue = submeshData.first->GetMaterial()->getAmbientColor();
+		p_shaderProgram->setUniformValue("material.Ka", QVector3D(rgbValue.R, rgbValue.G, rgbValue.B));
+		rgbValue = submeshData.first->GetMaterial()->getDiffuseColor();
+		p_shaderProgram->setUniformValue("material.Kd", QVector3D(rgbValue.R, rgbValue.G, rgbValue.B));
+		rgbValue = submeshData.first->GetMaterial()->getSpecularColor();
+		p_shaderProgram->setUniformValue("material.Ks", QVector3D(rgbValue.R, rgbValue.G, rgbValue.B));
+		p_shaderProgram->setUniformValue("material.Shininess", 50.f);
+
+		m_wavefrontModelIndexArrayBuffer.bind();
+		m_wavefrontModelIndexArrayBuffer.allocate(submeshData.second.data(), submeshData.second.size() * sizeof(unsigned short));
+
+		glDrawElements(GL_TRIANGLES, submeshData.second.size(), GL_UNSIGNED_SHORT, 0);
+	}
 }
 
 std::vector<ObjVertexCoords> MapRenderer::getScaledVerticesFromWavefrontModel()

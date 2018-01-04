@@ -41,7 +41,7 @@ public:
 		m_diffuseColor = p_rgbValue;
 	}
 
-	MaterialRGBValue getSpecularColorRGBValue()
+	MaterialRGBValue getSpecularColor()
 	{
 		return m_specularColor;
 	}

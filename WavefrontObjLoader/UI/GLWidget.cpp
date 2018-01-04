@@ -44,6 +44,9 @@ void GLWidget::initializeGL()
 
 	m_mapRenderer = new MapRenderer(m_objLoader, width(), height());
 	m_mapRenderer->init(m_shaderProgram);
+
+	m_shaderProgram->setUniformValue("light.position", QVector3D(-1.0f, 1.0f, 1.0f));
+	m_shaderProgram->setUniformValue("light.intensity", QVector3D(1.0f, 1.0f, 1.0f));
 }
 
 void GLWidget::resizeGL(int w, int h)
@@ -74,8 +77,8 @@ void GLWidget::paintGL()
 	viewMatrix.rotate(m_cameraAngleZ, 0.0, 0.0, 1.0);
 
 	QMatrix4x4 modelViewMatrix = modelMatrix * viewMatrix;
-
-	m_shaderProgram->setUniformValue("mvp_matrix", m_projectionMatrix * modelViewMatrix);
+	m_shaderProgram->setUniformValue("modelview_matrix", modelViewMatrix);
+	m_shaderProgram->setUniformValue("projection_matrix", m_projectionMatrix);
 
 	m_mapRenderer->render(m_shaderProgram);
 }

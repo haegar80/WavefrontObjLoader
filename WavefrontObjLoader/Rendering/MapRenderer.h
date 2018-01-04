@@ -35,7 +35,7 @@ private:
 	QOpenGLBuffer m_wavefrontModelIndexArrayBuffer;
 	int m_width{ 0 };
 	int m_height{ 0 };
-	int m_wavefrontModelIndexCount{ 0 };
+	std::map<SubMesh*, std::vector<unsigned short>> m_subMeshIndices;
 
 	void initMap(QOpenGLShaderProgram* p_shaderProgram);
 	void initWavefrontModels(QOpenGLShaderProgram* p_shaderProgram);
