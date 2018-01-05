@@ -24,9 +24,9 @@ public:
 	Mesh(std::string& p_name);
 	virtual ~Mesh();
 
-	void AddVertices(float p_x, float p_y, float p_z);
-	void AddNormals(float p_x, float p_y, float p_z);
-	void AddTextures(float p_u, float p_v);
+	void AddVertex(float p_x, float p_y, float p_z);
+	void AddNormal(float p_x, float p_y, float p_z);
+	void AddTexture(float p_u, float p_v);
 	void AddFace(Material* p_material);
 	void AddFaceIndices(unsigned short p_vertexIndex, unsigned short p_textureIndex = 0, unsigned short p_normalIndex = 0);
 
@@ -50,9 +50,18 @@ public:
 
 private:
 	std::string m_name;
+	std::vector<ObjVertexCoords> m_tempVertices;
+	std::vector<ObjVertexCoords> m_tempNormals;
+	std::vector<ObjTextureCoords> m_tempTextures;
+
 	std::vector<ObjVertexCoords> m_vertices;
 	std::vector<ObjVertexCoords> m_normals;
 	std::vector<ObjTextureCoords> m_textures;
 	std::vector<SubMesh*> m_submeshes;
+	unsigned int m_totalFaceIndices{ 0 };
+
+	void AddVertexFromFaceIndex(unsigned short p_vertexIndex);
+	void AddTextureFromFaceIndex(unsigned short p_textureIndex);
+	void AddNormalFromFaceIndex(unsigned short p_normalIndex);
 };
 

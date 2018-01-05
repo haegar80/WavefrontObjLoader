@@ -19,16 +19,15 @@ struct MaterialInfo
 };
 
 varying vec3 position_cameraspace;
-//varying vec3 normal_cameraspace;
+varying vec3 normal_cameraspace;
 
 uniform LightInfo light;
 uniform MaterialInfo material;
 
 void colorCalc( out vec3 ambient, out vec3 diffuse, out vec3 specular )
 {
-    vec3 normal = vec3(0);
 	vec3 lightPosition = vec3(0.0, 0.0, 0.0);
-	//vec3 n = normalize( normal_cameraspace );
+	vec3 n = normalize( normal_cameraspace );
 	vec3 lightSource = normalize( light.position - position_cameraspace );
 	vec3 eyeDirection = normalize( -position_cameraspace );
 	vec3 specularReflection = reflect( -lightSource, normal_cameraspace );
@@ -45,10 +44,10 @@ void main()
 {
     vec3 ambient, diffuse, specular;
 	
-	if ( gl_FrontFacing )
-	{
+	//if ( gl_FrontFacing )
+	//{
 	    colorCalc( ambient, diffuse, specular );
-	}
+	//}
 	
-    gl_FragColor = vec4((light.intensity * ambient + diffuse + specular), 1.0);
+    gl_FragColor = vec4((light.intensity * (ambient + diffuse + specular)), 1.0);
 }

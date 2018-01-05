@@ -13,7 +13,7 @@ struct MaterialRGBValue
 class Material
 {
 public:
-	Material(std::string& p_name);
+	Material(std::string p_name);
 	virtual ~Material() = default;
 
 	std::string& getName()
@@ -52,10 +52,10 @@ public:
 	}
 
 private:
-	std::string& m_name;
+	std::string m_name;
 
-	MaterialRGBValue m_ambientColor;
-	MaterialRGBValue m_diffuseColor;
-	MaterialRGBValue m_specularColor;
+	MaterialRGBValue m_ambientColor{ 0.0, 0.0, 0.0 };
+	MaterialRGBValue m_diffuseColor{ 0.0, 0.0, 0.0 };
+	MaterialRGBValue m_specularColor{ 0.0, 0.0, 0.0 };
 };
 

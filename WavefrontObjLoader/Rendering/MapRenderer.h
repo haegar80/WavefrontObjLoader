@@ -31,7 +31,8 @@ private:
    	QOpenGLVertexArrayObject m_vertexArrayObject;
 	QOpenGLVertexArrayObject m_vertexArrayObjectWavefrontModel;
 	QOpenGLBuffer m_mapPositionArrayBuffer;
-	QOpenGLBuffer m_wavefrontModelArrayBuffer;
+	QOpenGLBuffer m_wavefrontModelVertexBuffer;
+	QOpenGLBuffer m_wavefrontModelNormalBuffer;
 	QOpenGLBuffer m_wavefrontModelIndexArrayBuffer;
 	int m_width{ 0 };
 	int m_height{ 0 };
@@ -44,6 +45,7 @@ private:
 	void renderWavefrontModels(QOpenGLShaderProgram* p_shaderProgram);
 
 	std::vector<ObjVertexCoords> getScaledVerticesFromWavefrontModel();
+	std::vector<ObjVertexCoords> getNormals();
 };
 
 #endif // MapRenderer_H

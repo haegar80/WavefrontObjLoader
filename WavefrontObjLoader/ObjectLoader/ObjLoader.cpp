@@ -143,10 +143,10 @@ void ObjLoader::ReadObjVertexCoords(std::vector<std::string> p_lineTokens, bool 
 	vertexZStream >> z;
 
 	if (p_isPosition) {
-		m_currentMesh->AddVertices(x, y, z);
+		m_currentMesh->AddVertex(x, y, z);
 	}
 	else {
-		m_currentMesh->AddNormals(x, y, z);
+		m_currentMesh->AddNormal(x, y, z);
 	}
 }
 
@@ -161,7 +161,7 @@ void ObjLoader::ReadObjTextureCoords(std::vector<std::string> p_lineTokens)
 	textureUStream >> u;
 	textureVStream >> v;
 
-	m_currentMesh->AddTextures(u, v);
+	m_currentMesh->AddTexture(u, v);
 }
 
 void ObjLoader::ReadObjFaceWithNormalsAndTexture(std::vector<std::string> p_lineTokens)

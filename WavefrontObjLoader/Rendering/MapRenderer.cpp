@@ -13,7 +13,8 @@ MapRenderer::MapRenderer(const ObjLoader& pc_objLoader, int p_width, int p_heigh
 	m_vertexArrayObject.create();
 	m_vertexArrayObjectWavefrontModel.create();
 	m_mapPositionArrayBuffer.create();
-	m_wavefrontModelArrayBuffer.create();
+	m_wavefrontModelVertexBuffer.create();
+	m_wavefrontModelNormalBuffer.create();
 	m_wavefrontModelIndexArrayBuffer.create();
 }
 
@@ -22,7 +23,8 @@ MapRenderer::~MapRenderer()
 	m_vertexArrayObject.destroy();
 	m_vertexArrayObjectWavefrontModel.destroy();
 	m_mapPositionArrayBuffer.destroy();
-	m_wavefrontModelArrayBuffer.destroy();
+	m_wavefrontModelVertexBuffer.destroy();
+	m_wavefrontModelNormalBuffer.destroy();
 	m_wavefrontModelIndexArrayBuffer.destroy();
 }
 
@@ -98,7 +100,6 @@ void MapRenderer::initMap(QOpenGLShaderProgram* p_shaderProgram)
 	m_mapPositionArrayBuffer.bind();
 	m_mapPositionArrayBuffer.allocate(vertexPositions, 20 * sizeof(QVector3D));
 
-	m_mapPositionArrayBuffer.bind();
 	p_shaderProgram->enableAttributeArray(0);
 	p_shaderProgram->setAttributeBuffer(0, GL_FLOAT, 0, 3);
 }
@@ -106,17 +107,20 @@ void MapRenderer::initMap(QOpenGLShaderProgram* p_shaderProgram)
 void MapRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 {
 	std::vector<ObjVertexCoords> vertices = getScaledVerticesFromWavefrontModel();
+	std::vector<ObjVertexCoords> normals = getNormals();
 
-	m_wavefrontModelArrayBuffer.bind();
-	m_wavefrontModelArrayBuffer.allocate(vertices.data(), vertices.size() * sizeof(ObjVertexCoords));
-
-	p_shaderProgram->enableAttributeArray(0);
-	p_shaderProgram->setAttributeBuffer(0, GL_FLOAT, 0, 3);
+	m_wavefrontModelVertexBuffer.bind();
+	m_wavefrontModelVertexBuffer.allocate(vertices.data(), vertices.size() * sizeof(ObjVertexCoords));	
+	
+	m_wavefrontModelNormalBuffer.bind();
+	m_wavefrontModelNormalBuffer.allocate(normals.data(), normals.size() * sizeof(ObjVertexCoords));
 
 	std::vector<Mesh*> meshes = mc_objLoader.GetMeshes();
 	std::vector<unsigned short> vertexIndices;
 
 	m_subMeshIndices.clear();
+	int totalSubmeshSize = 0;
+
 	for each(Mesh* mesh in meshes)
 	{
 		for each(SubMesh* submesh in mesh->GetSubmeshes())
@@ -130,8 +134,20 @@ void MapRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 					m_subMeshIndices.at(submesh).push_back(index.VertexIndex);
 				}
 			}
+			totalSubmeshSize += submesh->GetFaces().size();
 		}
 	}
+	m_wavefrontModelIndexArrayBuffer.bind();
+	m_wavefrontModelIndexArrayBuffer.allocate(totalSubmeshSize * sizeof(unsigned short));
+
+	m_wavefrontModelVertexBuffer.bind();
+	m_wavefrontModelNormalBuffer.bind();
+	m_wavefrontModelIndexArrayBuffer.bind();
+
+	p_shaderProgram->enableAttributeArray(0);
+	p_shaderProgram->setAttributeBuffer(0, GL_FLOAT, 0, 3);
+	p_shaderProgram->enableAttributeArray(1);
+	p_shaderProgram->setAttributeBuffer(1, GL_FLOAT, 0, 3);
 }
 
 void MapRenderer::renderMap(QOpenGLShaderProgram* p_shaderProgram)
@@ -146,8 +162,6 @@ void MapRenderer::renderMap(QOpenGLShaderProgram* p_shaderProgram)
 
 void MapRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 {
-	m_wavefrontModelIndexArrayBuffer.bind();
-
 	for each(std::pair<SubMesh*, std::vector<unsigned short>> submeshData in m_subMeshIndices)
 	{
 		MaterialRGBValue rgbValue = submeshData.first->GetMaterial()->getAmbientColor();
@@ -158,8 +172,10 @@ void MapRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 		p_shaderProgram->setUniformValue("material.Ks", QVector3D(rgbValue.R, rgbValue.G, rgbValue.B));
 		p_shaderProgram->setUniformValue("material.Shininess", 50.f);
 
+		m_wavefrontModelVertexBuffer.bind();
+		m_wavefrontModelNormalBuffer.bind();
 		m_wavefrontModelIndexArrayBuffer.bind();
-		m_wavefrontModelIndexArrayBuffer.allocate(submeshData.second.data(), submeshData.second.size() * sizeof(unsigned short));
+		m_wavefrontModelIndexArrayBuffer.write(0, submeshData.second.data(), submeshData.second.size() * sizeof(unsigned short));
 
 		glDrawElements(GL_TRIANGLES, submeshData.second.size(), GL_UNSIGNED_SHORT, 0);
 	}
@@ -168,6 +184,7 @@ void MapRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 std::vector<ObjVertexCoords> MapRenderer::getScaledVerticesFromWavefrontModel()
 {
 	std::vector<ObjVertexCoords> scaledVertices;
+	// Todo: Only one mesh supported yet
 	for each(Mesh* mesh in mc_objLoader.GetMeshes()) {
 		std::vector<ObjVertexCoords> vertices = mesh->GetVertices();
 
@@ -214,4 +231,10 @@ std::vector<ObjVertexCoords> MapRenderer::getScaledVerticesFromWavefrontModel()
 
 	}
 	return scaledVertices;
+}
+
+std::vector<ObjVertexCoords> MapRenderer::getNormals()
+{
+	// Todo: Only one mesh supported yet
+	return mc_objLoader.GetMeshes().back()->GetNormals();
 }
