@@ -152,10 +152,9 @@ void MapRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 
 void MapRenderer::renderMap(QOpenGLShaderProgram* p_shaderProgram)
 {
-	p_shaderProgram->setUniformValue("material.Ka", QVector3D(0.2f, 0.2f, 0.2f));
-	p_shaderProgram->setUniformValue("material.Kd", QVector3D(0.0f, 0.3f, 0.0f));
-	p_shaderProgram->setUniformValue("material.Ks", QVector3D(0.6f, 0.6f, 0.6f));
-	p_shaderProgram->setUniformValue("material.Shininess", 50.f);
+	p_shaderProgram->setUniformValue("light.Ambient", QVector3D(0.2f, 0.2f, 0.2f));
+	p_shaderProgram->setUniformValue("light.Diffuse", QVector3D(0.0f, 0.3f, 0.0f));
+	p_shaderProgram->setUniformValue("light.Specular", QVector3D(0.6f, 0.6f, 0.6f));
 
 	glDrawArrays(GL_POLYGON, 0, 20);
 }
