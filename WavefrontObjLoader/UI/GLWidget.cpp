@@ -69,9 +69,10 @@ void GLWidget::paintGL()
 
 	// Viewmatrix
 	QMatrix4x4 viewMatrix;
-	viewMatrix.rotate(m_cameraAngleY, 0.0, 1.0, 0.0);
-	viewMatrix.rotate(m_cameraAngleX, 1.0, 0.0, 0.0);
-	viewMatrix.rotate(m_cameraAngleZ, 0.0, 0.0, 1.0);
+	viewMatrix.translate(0.0f, 0.0f, 0.0f);
+	viewMatrix.rotate(m_cameraAngleY, 0.0f, 1.0f, 0.0f);
+	viewMatrix.rotate(m_cameraAngleX, 1.0f, 0.0f, 0.0f);
+	viewMatrix.rotate(m_cameraAngleZ, 0.0f, 0.0f, 1.0f);
 
 	QMatrix4x4 modelViewMatrix = modelMatrix * viewMatrix;
 	m_shaderProgram->setUniformValue("modelview_matrix", modelViewMatrix);
@@ -83,35 +84,50 @@ void GLWidget::paintGL()
 void GLWidget::mousePressEvent(QMouseEvent *event) 
 {
 	m_mousePressed = true;
-	if(Qt::RightButton == event->buttons()) {
+	if (Qt::RightButton == event->buttons())
+	{
 		m_moveMap = true;
 	}
-	//processFindingObject(event->x(), m_height - event->y());
+	else if ((Qt::LeftButton | Qt::RightButton) == event->buttons())
+	{
+		m_turnMap = true;
+		m_moveMap = true;
+	}
+
 	m_lastXPos = event->x();
 	m_lastYPos = event->y();
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event) 
 {
-	m_mousePressed = false;
 	m_moveMap = false;
+	m_turnMap = false;
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event) 
 {
 	int currentXPos = event->x();
 	int currentYPos = event->y();
-	if(!m_mousePressed) {
+	if(!m_mousePressed) 
+	{
 		return;
 	}
-	if(Qt::RightButton == event->buttons()) {
+
+	if (m_turnMap || m_moveMap) 
+	{
 		double deltaX = currentXPos - m_lastXPos;
 		double deltaY = currentYPos - m_lastYPos;
-	
-		if (m_moveMap) {
+
+		if (m_turnMap) 
+		{
+			processTurningMap(deltaX, deltaY);
+		}
+		if (m_moveMap)
+		{
 			processMovingMap(deltaX, deltaY);
 		}
 	}
+
     m_lastXPos = currentXPos;
 	m_lastYPos = currentYPos;
 }
@@ -170,6 +186,32 @@ void GLWidget::processMovingMap(double p_xPosDelta, double p_yPosDelta)
 {
 	m_translateX += p_xPosDelta;
 	m_translateY -= p_yPosDelta;
+
+	update();
+}
+
+void GLWidget::processTurningMap(double p_xPosDelta, double p_yPosDelta)
+{
+	m_cameraAngleX += p_yPosDelta / 8.0;
+	m_cameraAngleY += p_xPosDelta / 8.0;
+
+	if (m_cameraAngleX > 360.0)
+	{
+		m_cameraAngleX -= 360.0;
+	}
+	else if (m_cameraAngleX < 0.0)
+	{
+		m_cameraAngleX += 360.0;
+	}
+
+	if (m_cameraAngleY > 360.0)
+	{
+		m_cameraAngleY -= 360.0;
+	}
+	else if (m_cameraAngleY < 0.0)
+	{
+		m_cameraAngleY += 360.0;
+	}
 
 	update();
 }

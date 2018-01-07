@@ -44,9 +44,11 @@ private:
 	double m_lastYPos;
 	bool m_mousePressed;
 	bool m_moveMap;
+	bool m_turnMap;
 
 	void initShaders();
 	void processMovingMap(double p_xPosDelta, double p_yPosDelta);
+	void processTurningMap(double p_xPosDelta, double p_yPosDelta);
 };
 
 #endif // GLWidget_H
