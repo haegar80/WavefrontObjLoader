@@ -44,16 +44,6 @@ void GLWidget::initializeGL()
 
 	m_mapRenderer = new MapRenderer(m_objLoader, width(), height());
 	m_mapRenderer->init(m_shaderProgram);
-
-	// Default values
-	m_shaderProgram->setUniformValue("material.Ka", QVector3D(1.0f, 1.0f, 1.0f));
-	m_shaderProgram->setUniformValue("material.Kd", QVector3D(1.0f, 1.0f, 1.0f));
-	m_shaderProgram->setUniformValue("material.Ks", QVector3D(1.0f, 1.0f, 1.0f));
-	m_shaderProgram->setUniformValue("material.Shininess", 50.f);
-	m_shaderProgram->setUniformValue("light.Position", QVector3D(0.0f, 0.0f, 1.0f));
-	m_shaderProgram->setUniformValue("light.AmbientColor", QVector3D(0.15f, 0.15f, 0.15f));
-	m_shaderProgram->setUniformValue("light.DiffuseColor", QVector3D(1.0f, 1.0f, 1.0f));
-	m_shaderProgram->setUniformValue("light.SpecularColor", QVector3D(1.0f, 1.0f, 1.0f));
 }
 
 void GLWidget::resizeGL(int w, int h)
