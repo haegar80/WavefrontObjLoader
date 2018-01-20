@@ -12,11 +12,11 @@ class QOpenGLWidget;
 class QOpenGLShaderProgram;
 class QOpenGLTexture;
 
-class MapRenderer : protected QOpenGLFunctions
+class WavefrontRenderer : protected QOpenGLFunctions
 {
 public:
-	MapRenderer(const ObjLoader& pc_objLoader, int p_width, int p_height);
-	virtual ~MapRenderer();
+	WavefrontRenderer(const ObjLoader& pc_objLoader, int p_width, int p_height);
+	virtual ~WavefrontRenderer();
 
 	void init(QOpenGLShaderProgram* p_shaderProgram);
 	void render(QOpenGLShaderProgram* p_shaderProgram);

@@ -140,7 +140,7 @@
     <ClCompile Include="ObjectLoader\MaterialLoader.cpp" />
     <ClCompile Include="ObjectLoader\Material.cpp" />
     <ClCompile Include="ObjectLoader\ObjLoader.cpp" />
-    <ClCompile Include="Rendering\MapRenderer.cpp" />
+    <ClCompile Include="Rendering\WavefrontRenderer.cpp" />
     <ClCompile Include="ObjectLoader\SubMesh.cpp" />
     <ClCompile Include="UI\GLWidget.cpp" />
     <ClCompile Include="UI\WavefrontObjLoader.cpp" />
@@ -165,7 +165,7 @@
     <ClInclude Include="ObjectLoader\MaterialLoader.h" />
     <ClInclude Include="ObjectLoader\Material.h" />
     <ClInclude Include="ObjectLoader\ObjLoader.h" />
-    <ClInclude Include="Rendering\MapRenderer.h" />
+    <ClInclude Include="Rendering\WavefrontRenderer.h" />
     <ClInclude Include="ObjectLoader\SubMesh.h" />
     <ClInclude Include="UI\GLWidget.h" />
   </ItemGroup>

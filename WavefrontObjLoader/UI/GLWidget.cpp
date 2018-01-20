@@ -42,7 +42,7 @@ void GLWidget::initializeGL()
 
 	initShaders();
 
-	m_mapRenderer = new MapRenderer(m_objLoader, width(), height());
+	m_mapRenderer = new WavefrontRenderer(m_objLoader, width(), height());
 	m_mapRenderer->init(m_shaderProgram);
 }
 

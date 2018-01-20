@@ -2,7 +2,7 @@
 #define GLWidget_H
 
 #include "../ObjectLoader/ObjLoader.h"
-#include "../Rendering/MapRenderer.h"
+#include "../Rendering/WavefrontRenderer.h"
 #include <QOpenGLWidget>
 #include <QtGui/QOpenGLFunctions>
 #include <QtGui/qmatrix4x4.h>
@@ -31,7 +31,7 @@ private:
 	QOpenGLShaderProgram* m_shaderProgram{ nullptr };
 	QMatrix4x4 m_projectionMatrix;
 	ObjLoader& m_objLoader;
-	MapRenderer* m_mapRenderer{ nullptr };
+	WavefrontRenderer* m_mapRenderer{ nullptr };
 	double m_width;
 	double m_height;
 	double m_currentZoom;

@@ -1,6 +1,5 @@
 #include "UI/WavefrontObjLoader.h"
 #include "UI/GLWidget.h"
-#include "Rendering/MapRenderer.h"
 #include "ObjectLoader/ObjLoader.h"
 #include <QtWidgets/QApplication>
 
