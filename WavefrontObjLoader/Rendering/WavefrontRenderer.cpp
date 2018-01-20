@@ -72,6 +72,7 @@ void WavefrontRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgra
 	std::vector<unsigned short> vertexIndices;
 
 	m_subMeshIndicesCount.clear();
+
 	for each(Mesh* mesh in meshes)
 	{
 		for each(SubMesh* submesh in mesh->GetSubmeshes())
@@ -112,7 +113,7 @@ void WavefrontRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgra
 
 void WavefrontRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 {
-	p_shaderProgram->setUniformValue("light.Position", QVector3D(0.5f, 0.4f, 1.0f));
+	p_shaderProgram->setUniformValue("light.Position", QVector3D(0.5f, 0.4f, -1.0f));
 	p_shaderProgram->setUniformValue("light.AmbientColor", QVector3D(0.0f, 0.3f, 0.0f));
 	p_shaderProgram->setUniformValue("light.DiffuseColor", QVector3D(0.9f, 0.9f, 0.9f));
 	p_shaderProgram->setUniformValue("light.SpecularColor", QVector3D(1.0f, 1.0f, 1.0f));
@@ -170,16 +171,16 @@ std::vector<ObjVertexCoords> WavefrontRenderer::getScaledVerticesFromWavefrontMo
 	float differenceX = maxX - minX;
 	float differenceY = maxY - minY;
 
-	float scaleFactorX = m_width / differenceX;
-	float scaleFactorY = m_height / differenceY;
-	float moveToCenterX = minX * scaleFactorX;
-	float moveToCenterY = minY * scaleFactorY;
+	m_scaleFactorX = m_width / differenceX;
+	m_scaleFactorY = m_height / differenceY;
+	m_moveToCenterX = minX * m_scaleFactorX;
+	m_moveToCenterY = minY * m_scaleFactorY;
 
 	for each(ObjVertexCoords vertex in vertices)
 	{
 		ObjVertexCoords scaledVertex;
-		scaledVertex.X = vertex.X * scaleFactorX - moveToCenterX;
-		scaledVertex.Y = vertex.Y * scaleFactorY - moveToCenterY;
+		scaledVertex.X = vertex.X * m_scaleFactorX - m_moveToCenterX;
+		scaledVertex.Y = vertex.Y * m_scaleFactorY - m_moveToCenterY;
 		scaledVertex.Z = vertex.Z;
 		scaledVertices.push_back(scaledVertex);
 	}
@@ -195,14 +196,25 @@ std::vector<ObjVertexCoords> WavefrontRenderer::getNormalsFromWaveFrontModel()
 
 std::vector<ObjTextureCoords> WavefrontRenderer::getTextureCoordsFromWaveFrontModel()
 {
+	std::vector<ObjTextureCoords> scaledTextures;
 	// Todo: Only one mesh supported yet
-	return mc_objLoader.GetMeshes().back()->GetTextures();
+	std::vector<ObjTextureCoords> textures = mc_objLoader.GetMeshes().back()->GetTextures();
+
+	for each(ObjTextureCoords texture in textures)
+	{
+		ObjTextureCoords scaledTexture;
+		scaledTexture.U = texture.U * m_scaleFactorX - m_moveToCenterX;
+		scaledTexture.V = texture.V * m_scaleFactorY - m_moveToCenterY;
+		scaledTextures.push_back(scaledTexture);
+	}
+
+	return scaledTextures;
 }
 
 void WavefrontRenderer::prepareTextures(SubMesh* p_submesh)
 {
 	QImage transparentImage(1, 1, QImage::Format::Format_ARGB32_Premultiplied);
-	transparentImage.fill(Qt::transparent);
+	transparentImage.fill(QColor(255, 255, 255, 255));
 
 	QString ambientTexturePath(p_submesh->GetMaterial()->getAmbientTexturePath().c_str());
 	QOpenGLTexture* ambientTexture = nullptr;

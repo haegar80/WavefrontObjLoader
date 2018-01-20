@@ -83,6 +83,13 @@ void Mesh::AddTextureFromFaceIndex(unsigned short p_textureIndex)
 	{
 		m_textures.push_back(m_tempTextures.at(p_textureIndex));
 	}
+	else 
+	{
+		ObjTextureCoords dummyCoords;
+		dummyCoords.U = m_vertices.back().X;
+		dummyCoords.V = m_vertices.back().Y;
+		m_textures.push_back(dummyCoords);
+	}
 }
 
 void Mesh::AddNormalFromFaceIndex(unsigned short p_normalIndex)
@@ -90,5 +97,13 @@ void Mesh::AddNormalFromFaceIndex(unsigned short p_normalIndex)
 	if (m_tempNormals.size() > 0)
 	{
 		m_normals.push_back(m_tempNormals.at(p_normalIndex));
+	}
+	else 
+	{
+		ObjVertexCoords dummyCoords;
+		dummyCoords.X = m_vertices.back().X;
+		dummyCoords.Y = m_vertices.back().Y;
+		dummyCoords.Z = m_vertices.back().Z;
+		m_normals.push_back(dummyCoords);
 	}
 }
