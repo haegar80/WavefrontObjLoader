@@ -135,10 +135,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 void GLWidget::wheelEvent(QWheelEvent *event) 
 {
 	if(event->delta() > 0) {
-		m_currentZoom -= 200;
+		m_currentZoom += 200;
 	}
 	else {
-		m_currentZoom += 200;
+		m_currentZoom -= 200;
 	}
 	update();
 }
@@ -169,8 +169,6 @@ void GLWidget::initShaders()
 		close();
 	}
 
-	m_shaderProgram->bindAttributeLocation("in_Position", 0);
-
 	if (!m_shaderProgram->link())
 	{
 		close();
@@ -180,6 +178,10 @@ void GLWidget::initShaders()
 	{
 		close();
 	}
+
+	m_shaderProgram->setUniformValue("ambient_texture", 0);
+	m_shaderProgram->setUniformValue("diffuse_texture", 1);
+	m_shaderProgram->setUniformValue("specular_texture", 2);
 }
 
 void GLWidget::processMovingMap(double p_xPosDelta, double p_yPosDelta)

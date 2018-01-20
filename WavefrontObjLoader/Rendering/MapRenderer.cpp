@@ -1,6 +1,8 @@
 #include "MapRenderer.h"
 #include <QOpenGLWidget>
 #include <QtGui/QOpenGLShaderProgram>
+#include <QtGui/QOpenGLTexture>
+#include <QtGui/QImage>
 
 MapRenderer::MapRenderer(const ObjLoader& pc_objLoader, int p_width, int p_height) :
 	mc_objLoader(pc_objLoader),
@@ -13,6 +15,7 @@ MapRenderer::MapRenderer(const ObjLoader& pc_objLoader, int p_width, int p_heigh
 	m_vertexArrayObjectWavefrontModel.create();
 	m_wavefrontModelVertexBuffer.create();
 	m_wavefrontModelNormalBuffer.create();
+	m_wavefrontModelTextureBuffer.create();
 	m_wavefrontModelIndexArrayBuffer.create();
 }
 
@@ -21,7 +24,21 @@ MapRenderer::~MapRenderer()
 	m_vertexArrayObjectWavefrontModel.destroy();
 	m_wavefrontModelVertexBuffer.destroy();
 	m_wavefrontModelNormalBuffer.destroy();
+	m_wavefrontModelTextureBuffer.destroy();
 	m_wavefrontModelIndexArrayBuffer.destroy();
+
+	for each(std::pair<SubMesh*, QOpenGLTexture*> texture in m_subMeshAmbientTextures)
+	{
+		delete texture.second;
+	}
+	for each(std::pair<SubMesh*, QOpenGLTexture*> texture in m_subMeshDiffuseTextures)
+	{
+		delete texture.second;
+	}
+	for each(std::pair<SubMesh*, QOpenGLTexture*> texture in m_subMeshSpecularTextures)
+	{
+		delete texture.second;
+	}
 }
 
 void MapRenderer::init(QOpenGLShaderProgram* p_shaderProgram)
@@ -40,12 +57,16 @@ void MapRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 {
 	std::vector<ObjVertexCoords> vertices = getScaledVerticesFromWavefrontModel();
 	std::vector<ObjVertexCoords> normals = getNormalsFromWaveFrontModel();
+	std::vector<ObjTextureCoords> textureCoords = getTextureCoordsFromWaveFrontModel();
 
 	m_wavefrontModelVertexBuffer.bind();
 	m_wavefrontModelVertexBuffer.allocate(vertices.data(), vertices.size() * sizeof(ObjVertexCoords));
 
 	m_wavefrontModelNormalBuffer.bind();
 	m_wavefrontModelNormalBuffer.allocate(normals.data(), normals.size() * sizeof(ObjVertexCoords));
+
+	m_wavefrontModelTextureBuffer.bind();
+	m_wavefrontModelTextureBuffer.allocate(textureCoords.data(), textureCoords.size() * sizeof(ObjTextureCoords));
 
 	std::vector<Mesh*> meshes = mc_objLoader.GetMeshes();
 	std::vector<unsigned short> vertexIndices;
@@ -66,6 +87,8 @@ void MapRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 				}
 			}
 			m_subMeshIndicesCount.insert(std::make_pair(submesh, numberOfIndicesPerSubmesh));
+
+			prepareTextures(submesh);
 		}
 	}
 	m_wavefrontModelIndexArrayBuffer.bind();
@@ -80,14 +103,19 @@ void MapRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 	int normalLocation = p_shaderProgram->attributeLocation("in_Normal");
 	p_shaderProgram->enableAttributeArray(normalLocation);
 	p_shaderProgram->setAttributeBuffer(normalLocation, GL_FLOAT, 0, 3);
+
+	m_wavefrontModelTextureBuffer.bind();
+	int textureCoordLocation = p_shaderProgram->attributeLocation("in_Texture");
+	p_shaderProgram->enableAttributeArray(textureCoordLocation);
+	p_shaderProgram->setAttributeBuffer(textureCoordLocation, GL_FLOAT, 0, 2);
 }
 
 void MapRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 {
-	p_shaderProgram->setUniformValue("light.Position", QVector3D(0.0f, 0.0f, -1.0f));
+	p_shaderProgram->setUniformValue("light.Position", QVector3D(0.5f, 0.4f, 1.0f));
 	p_shaderProgram->setUniformValue("light.AmbientColor", QVector3D(0.0f, 0.3f, 0.0f));
-	p_shaderProgram->setUniformValue("light.DiffuseColor", QVector3D(0.0f, 0.3f, 0.0f));
-	p_shaderProgram->setUniformValue("light.SpecularColor", QVector3D(0.6f, 0.6f, 0.6f));
+	p_shaderProgram->setUniformValue("light.DiffuseColor", QVector3D(0.8f, 0.8f, 0.8f));
+	p_shaderProgram->setUniformValue("light.SpecularColor", QVector3D(1.0f, 1.0f, 1.0f));
 	p_shaderProgram->setUniformValue("material.Shininess", 50.f);
 	int indexOffset = 0;
 
@@ -99,7 +127,11 @@ void MapRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProgram)
 		p_shaderProgram->setUniformValue("material.Kd", QVector3D(rgbValue.R, rgbValue.G, rgbValue.B));
 		rgbValue = submeshData.first->GetMaterial()->getSpecularColor();
 		p_shaderProgram->setUniformValue("material.Ks", QVector3D(rgbValue.R, rgbValue.G, rgbValue.B));
-		
+
+		m_subMeshAmbientTextures.at(submeshData.first)->bind(0);
+		m_subMeshDiffuseTextures.at(submeshData.first)->bind(1);
+		m_subMeshSpecularTextures.at(submeshData.first)->bind(2);
+
 		glDrawElements(GL_TRIANGLES, submeshData.second, GL_UNSIGNED_SHORT, (GLvoid*) (indexOffset * sizeof(unsigned short)));
 		indexOffset += submeshData.second;
 	}
@@ -159,4 +191,52 @@ std::vector<ObjVertexCoords> MapRenderer::getNormalsFromWaveFrontModel()
 {
 	// Todo: Only one mesh supported yet
 	return mc_objLoader.GetMeshes().back()->GetNormals();
+}
+
+std::vector<ObjTextureCoords> MapRenderer::getTextureCoordsFromWaveFrontModel()
+{
+	// Todo: Only one mesh supported yet
+	return mc_objLoader.GetMeshes().back()->GetTextures();
+}
+
+void MapRenderer::prepareTextures(SubMesh* p_submesh)
+{
+	QImage transparentImage(1, 1, QImage::Format::Format_ARGB32_Premultiplied);
+	transparentImage.fill(Qt::transparent);
+
+	QString ambientTexturePath(p_submesh->GetMaterial()->getAmbientTexturePath().c_str());
+	QOpenGLTexture* ambientTexture = nullptr;
+	if (ambientTexturePath.isEmpty())
+	{
+		ambientTexture = new QOpenGLTexture(std::move(transparentImage));
+	}
+	else 
+	{
+		ambientTexture = new QOpenGLTexture(QImage(ambientTexturePath).mirrored());
+	}
+	m_subMeshAmbientTextures.insert(std::make_pair(p_submesh, ambientTexture));
+
+	QString diffuseTexturePath(p_submesh->GetMaterial()->getDiffuseTexturePath().c_str());
+	QOpenGLTexture* diffuseTexture = nullptr;
+	if (diffuseTexturePath.isEmpty())
+	{
+		diffuseTexture = new QOpenGLTexture(std::move(transparentImage));
+	}
+	else
+	{
+		diffuseTexture = new QOpenGLTexture(QImage(diffuseTexturePath).mirrored());
+	}
+	m_subMeshDiffuseTextures.insert(std::make_pair(p_submesh, diffuseTexture));
+
+	QString specularTexturePath(p_submesh->GetMaterial()->getSpecularTexturePath().c_str());
+	QOpenGLTexture* specularTexture = nullptr;
+	if (specularTexturePath.isEmpty())
+	{
+		specularTexture = new QOpenGLTexture(std::move(transparentImage));
+	}
+	else 
+	{
+		specularTexture = new QOpenGLTexture(QImage(specularTexturePath).mirrored());
+	}
+	m_subMeshSpecularTextures.insert(std::make_pair(p_submesh, specularTexture));
 }

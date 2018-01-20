@@ -51,11 +51,44 @@ public:
 		m_specularColor = p_rgbValue;
 	}
 
+	std::string& getAmbientTexturePath()
+	{
+		return m_ambientTexturePath;
+	}
+
+	void setAmbientTexturePath(std::string& p_texturePath)
+	{
+		m_ambientTexturePath = p_texturePath;
+	}
+
+	std::string& getDiffuseTexturePath()
+	{
+		return m_diffuseTexturePath;
+	}
+
+	void setDiffuseTexturePath(std::string& p_texturePath)
+	{
+		m_diffuseTexturePath = p_texturePath;
+	}
+
+	std::string& getSpecularTexturePath()
+	{
+		return m_specularTexturePath;
+	}
+
+	void setSpecularTexturePath(std::string& p_texturePath)
+	{
+		m_specularTexturePath = p_texturePath;
+	}
+
 private:
 	std::string m_name;
 
 	MaterialRGBValue m_ambientColor{ 0.0, 0.0, 0.0 };
 	MaterialRGBValue m_diffuseColor{ 0.0, 0.0, 0.0 };
 	MaterialRGBValue m_specularColor{ 0.0, 0.0, 0.0 };
+	std::string m_ambientTexturePath{ "" };
+	std::string m_diffuseTexturePath{ "" };
+	std::string m_specularTexturePath{ "" };
 };
 

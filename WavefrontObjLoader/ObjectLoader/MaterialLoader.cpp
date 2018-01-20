@@ -103,6 +103,30 @@ void MaterialLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTo
 			m_materials.back()->setSpecularColor(rgbValue);
 		}
 	}
+	else if (0 == p_lineTokens[0].compare("map_Ka"))
+	{
+		if (2 == p_lineTokens.size())
+		{
+			std::string path = "Wavefront/building/" + p_lineTokens[1];
+			m_materials.back()->setAmbientTexturePath(path);
+		}
+	}
+	else if (0 == p_lineTokens[0].compare("map_Kd"))
+	{
+		if (2 == p_lineTokens.size())
+		{
+			std::string path = "Wavefront/building/" + p_lineTokens[1];
+			m_materials.back()->setDiffuseTexturePath(path);
+		}
+	}
+	else if (0 == p_lineTokens[0].compare("map_Ks"))
+	{
+		if (2 == p_lineTokens.size())
+		{
+			std::string path = "Wavefront/building/" + p_lineTokens[1];
+			m_materials.back()->setSpecularTexturePath(path);
+		}
+	}
 }
 
 MaterialRGBValue MaterialLoader::ReadRGBValues(std::vector<std::string> p_lineTokens)
