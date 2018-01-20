@@ -59,6 +59,7 @@ private:
 	std::vector<ObjTextureCoords> m_textures;
 	std::vector<SubMesh*> m_submeshes;
 	unsigned int m_totalFaceIndices{ 0 };
+	Material* m_lastUsedMaterial{ nullptr };
 
 	void AddVertexFromFaceIndex(unsigned short p_vertexIndex);
 	void AddTextureFromFaceIndex(unsigned short p_textureIndex);

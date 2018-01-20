@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
 	const int cSize = 1000;
 
 	ObjLoader objLoader;
-	std::string fileNameTest = "Wavefront/building/building.obj";
+	std::string fileNameTest = "Wavefront/stove1/stove1.obj";
 	objLoader.LoadOBJ(fileNameTest);
 
 	QSurfaceFormat format;

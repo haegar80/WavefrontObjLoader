@@ -107,7 +107,7 @@ void MaterialLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTo
 	{
 		if (2 == p_lineTokens.size())
 		{
-			std::string path = "Wavefront/building/" + p_lineTokens[1];
+			std::string path = "Wavefront/stove1/" + p_lineTokens[1];
 			m_materials.back()->setAmbientTexturePath(path);
 		}
 	}
@@ -115,7 +115,7 @@ void MaterialLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTo
 	{
 		if (2 == p_lineTokens.size())
 		{
-			std::string path = "Wavefront/building/" + p_lineTokens[1];
+			std::string path = "Wavefront/stove1/" + p_lineTokens[1];
 			m_materials.back()->setDiffuseTexturePath(path);
 		}
 	}
@@ -123,7 +123,7 @@ void MaterialLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTo
 	{
 		if (2 == p_lineTokens.size())
 		{
-			std::string path = "Wavefront/building/" + p_lineTokens[1];
+			std::string path = "Wavefront/stove1/" + p_lineTokens[1];
 			m_materials.back()->setSpecularTexturePath(path);
 		}
 	}

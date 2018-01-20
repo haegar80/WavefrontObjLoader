@@ -73,7 +73,7 @@ void ObjLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTokens)
 	{
 		if (2 == p_lineTokens.size())
 		{
-			std::string path = "Wavefront/building/" + p_lineTokens[1];
+			std::string path = "Wavefront/stove1/" + p_lineTokens[1];
 			m_materialLoader.LoadMaterial(path);
 		}
 	}
@@ -93,6 +93,10 @@ void ObjLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTokens)
 		if (4 == p_lineTokens.size())
 		{
 			ReadObjVertexCoords(std::move(p_lineTokens), true);
+
+			// Reset old values
+			m_hasNormals = false;
+			m_hasTextures = false;
 		}
 	}
 	else if (0 == p_lineTokens[0].compare("vn")) // Add normal
@@ -295,19 +299,21 @@ void ObjLoader::ReadObjFaceVertexOnly(std::vector<std::string> p_lineTokens)
 
 	for each(std::string token in p_lineTokens)
 	{
-		if (0 != p_lineTokens[0].compare("f"))
+		if (0 == token.compare("f"))
 		{
-			if (needsCreatingFace)
-			{
-				m_currentMesh->AddFace(m_currentMaterial);
-				needsCreatingFace = false;
-			}
-
-			std::stringstream vertIndexStream(token.substr(0, token.length()));
-
-			vertIndexStream >> vertIndex;
-
-			m_currentMesh->AddFaceIndices(vertIndex - 1, 0, 0);
+			continue;
 		}
+
+		if (needsCreatingFace)
+		{
+			m_currentMesh->AddFace(m_currentMaterial);
+			needsCreatingFace = false;
+		}
+
+		std::stringstream vertIndexStream(token.substr(0, token.length()));
+
+		vertIndexStream >> vertIndex;
+
+		m_currentMesh->AddFaceIndices(vertIndex - 1, 0, 0);
 	}
 }

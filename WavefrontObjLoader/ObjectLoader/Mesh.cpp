@@ -45,11 +45,20 @@ void Mesh::AddTexture(float p_u, float p_v)
 
 void Mesh::AddFace(Material* p_material)
 {
-	auto subMeshWithMatchingMaterial = std::find_if(m_submeshes.begin(), m_submeshes.end(), [p_material] (SubMesh* submesh) {return p_material == submesh->GetMaterial(); });
-	
-	if (m_submeshes.end() == subMeshWithMatchingMaterial)
+	if (p_material != m_lastUsedMaterial)
 	{
-		m_submeshes.push_back(new SubMesh(p_material));
+		auto subMeshWithMatchingMaterial = std::find_if(m_submeshes.begin(), m_submeshes.end(), [p_material](SubMesh* submesh) {return p_material == submesh->GetMaterial(); });
+
+		if (m_submeshes.end() == subMeshWithMatchingMaterial)
+		{
+			m_lastUsedMaterial = p_material;
+			m_submeshes.push_back(new SubMesh(p_material));
+		}
+		else {
+			SubMesh* submeshMoveToBack = *subMeshWithMatchingMaterial;
+			m_submeshes.erase(subMeshWithMatchingMaterial);
+			m_submeshes.push_back(submeshMoveToBack);
+		}
 	}
 	m_submeshes.back()->AddFace();
 }
@@ -70,10 +79,16 @@ void Mesh::AddVertexFromFaceIndex(unsigned short p_vertexIndex)
 
 void Mesh::AddTextureFromFaceIndex(unsigned short p_textureIndex)
 {
-	m_textures.push_back(m_tempTextures.at(p_textureIndex));
+	if (m_tempTextures.size() > 0)
+	{
+		m_textures.push_back(m_tempTextures.at(p_textureIndex));
+	}
 }
 
 void Mesh::AddNormalFromFaceIndex(unsigned short p_normalIndex)
 {
-	m_normals.push_back(m_tempNormals.at(p_normalIndex));
+	if (m_tempNormals.size() > 0)
+	{
+		m_normals.push_back(m_tempNormals.at(p_normalIndex));
+	}
 }
