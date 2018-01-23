@@ -116,7 +116,7 @@ void WavefrontRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProg
 	p_shaderProgram->setUniformValue("light.Position", QVector3D(0.5f, 0.4f, -1.0f));
 	p_shaderProgram->setUniformValue("light.AmbientColor", QVector3D(0.0f, 0.3f, 0.0f));
 	p_shaderProgram->setUniformValue("light.DiffuseColor", QVector3D(0.9f, 0.9f, 0.9f));
-	p_shaderProgram->setUniformValue("light.SpecularColor", QVector3D(1.0f, 1.0f, 1.0f));
+	p_shaderProgram->setUniformValue("light.SpecularColor", QVector3D(0.8f, 0.8f, 0.8f));
 	p_shaderProgram->setUniformValue("material.Shininess", 50.f);
 	int indexOffset = 0;
 
