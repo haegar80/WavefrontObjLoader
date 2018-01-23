@@ -4,19 +4,7 @@
 #include <QtGui/QMouseEvent>
 
 GLWidget::GLWidget(ObjLoader& p_objLoader, QWidget* p_parent) : QOpenGLWidget(p_parent),
-    m_objLoader(p_objLoader),
-	m_width(0.0),
-	m_height(0.0),
-	m_currentZoom(-4000.0),
-	m_translateX(-500.0),
-	m_translateY(-300.0),
-	m_cameraAngleX(30.0),
-	m_cameraAngleY(0.0),
-	m_cameraAngleZ(0.0),
-	m_lastXPos(0.0),
-	m_lastYPos(0.0),
-	m_mousePressed(false),
-	m_moveMap(false)
+    m_objLoader(p_objLoader)
 {
     setMouseTracking(true);
 	setAutoFillBackground(false);
