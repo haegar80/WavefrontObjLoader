@@ -171,17 +171,24 @@ std::vector<ObjVertexCoords> WavefrontRenderer::getScaledVerticesFromWavefrontMo
 	float differenceX = maxX - minX;
 	float differenceY = maxY - minY;
 
-	m_scaleFactorX = m_width / differenceX;
-	m_scaleFactorY = m_height / differenceY;
-	m_moveToCenterX = minX * m_scaleFactorX;
-	m_moveToCenterY = minY * m_scaleFactorY;
+	float scaleFactorX = m_width / differenceX;
+	float scaleFactorY = m_height / differenceY;
+	if (scaleFactorX < scaleFactorY)
+	{
+		m_scaleFactor = scaleFactorX;
+	}
+	else {
+		m_scaleFactor = scaleFactorY;
+	}
+	m_moveToCenterX = minX * m_scaleFactor;
+	m_moveToCenterY = minY * m_scaleFactor;
 
 	for each(ObjVertexCoords vertex in vertices)
 	{
 		ObjVertexCoords scaledVertex;
-		scaledVertex.X = vertex.X * m_scaleFactorX - m_moveToCenterX;
-		scaledVertex.Y = vertex.Y * m_scaleFactorY - m_moveToCenterY;
-		scaledVertex.Z = vertex.Z;
+		scaledVertex.X = vertex.X * m_scaleFactor - m_moveToCenterX;
+		scaledVertex.Y = vertex.Y * m_scaleFactor - m_moveToCenterY;
+		scaledVertex.Z = vertex.Z * m_scaleFactor;
 		scaledVertices.push_back(scaledVertex);
 	}
 
@@ -203,8 +210,8 @@ std::vector<ObjTextureCoords> WavefrontRenderer::getTextureCoordsFromWaveFrontMo
 	for each(ObjTextureCoords texture in textures)
 	{
 		ObjTextureCoords scaledTexture;
-		scaledTexture.U = texture.U * m_scaleFactorX - m_moveToCenterX;
-		scaledTexture.V = texture.V * m_scaleFactorY - m_moveToCenterY;
+		scaledTexture.U = texture.U * m_scaleFactor - m_moveToCenterX;
+		scaledTexture.V = texture.V * m_scaleFactor - m_moveToCenterY;
 		scaledTextures.push_back(scaledTexture);
 	}
 

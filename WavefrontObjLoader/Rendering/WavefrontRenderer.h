@@ -41,8 +41,7 @@ private:
 	std::map<SubMesh*, QOpenGLTexture*> m_subMeshAmbientTextures;
 	std::map<SubMesh*, QOpenGLTexture*> m_subMeshDiffuseTextures;
 	std::map<SubMesh*, QOpenGLTexture*> m_subMeshSpecularTextures;
-	float m_scaleFactorX{ 0.0f };
-	float m_scaleFactorY{ 0.0f };
+	float m_scaleFactor{ 0.0f };
 	float m_moveToCenterX{ 0.0f };
 	float m_moveToCenterY{ 0.0f };
 
