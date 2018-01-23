@@ -11,16 +11,16 @@ class WavefrontObjLoader : public QMainWindow
 
 public:
     WavefrontObjLoader();
-	virtual ~WavefrontObjLoader() = default;
+    virtual ~WavefrontObjLoader() = default;
 
-	void setupUi();
-	void retranslateUi();
-	QWidget* getMapWidget();
+    void setupUi();
+    void retranslateUi();
+    QWidget* getMapWidget();
 
 private:
-	QWidget* m_centralwidget;
-	QWidget* m_widget;
-	QPushButton* m_quitButton;
-	QMenuBar* m_menubar;
-	QStatusBar* m_statusbar;
+    QWidget* m_centralwidget;
+    QWidget* m_widget;
+    QPushButton* m_quitButton;
+    QMenuBar* m_menubar;
+    QStatusBar* m_statusbar;
 };

@@ -7,18 +7,18 @@
 class MaterialLoader
 {
 public:
-	MaterialLoader();
-	virtual ~MaterialLoader();
+    MaterialLoader();
+    virtual ~MaterialLoader();
 
-	void LoadMaterial(std::string& p_dirPath, std::string& p_fileName);
+    void LoadMaterial(std::string& p_dirPath, std::string& p_fileName);
 
-	Material* GetMaterialByName(std::string& p_name);
+    Material* GetMaterialByName(std::string& p_name);
 
 private:
-	std::string m_currentDirPath{ "" };
-	std::vector<Material*> m_materials;
+    std::string m_currentDirPath{ "" };
+    std::vector<Material*> m_materials;
 
-	void EvaluateAndExecuteCommand(std::vector<std::string> p_lineTokens);
-	MaterialRGBValue ReadRGBValues(std::vector<std::string> p_lineTokens);
+    void EvaluateAndExecuteCommand(std::vector<std::string> p_lineTokens);
+    MaterialRGBValue ReadRGBValues(std::vector<std::string> p_lineTokens);
 };
 
