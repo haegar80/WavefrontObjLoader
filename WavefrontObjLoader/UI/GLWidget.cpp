@@ -179,9 +179,9 @@ void GLWidget::initShaders()
 		close();
 	}
 
-	m_shaderProgram->setUniformValue("ambient_texture", 0);
-	m_shaderProgram->setUniformValue("diffuse_texture", 1);
-	m_shaderProgram->setUniformValue("specular_texture", 2);
+	m_shaderProgram->setUniformValue("ambient_map", 0);
+	m_shaderProgram->setUniformValue("diffuse_map", 1);
+	m_shaderProgram->setUniformValue("specular_map", 2);
 }
 
 void GLWidget::processMovingMap(double p_xPosDelta, double p_yPosDelta)
