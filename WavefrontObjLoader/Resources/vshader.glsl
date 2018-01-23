@@ -20,8 +20,8 @@ varying vec2 frag_textureCoord;
 void main()
 {
     position_cameraspace = (modelview_matrix * vec4(in_Position, 1.0)).xyz;
-	normal_cameraspace = (modelview_matrix * vec4(in_Normal, 0.0)).xyz;
-	frag_textureCoord = in_Texture;
+    normal_cameraspace = (modelview_matrix * vec4(in_Normal, 0.0)).xyz;
+    frag_textureCoord = in_Texture;
 
-	gl_Position = projection_matrix * modelview_matrix * vec4(in_Position, 1.0);
+    gl_Position = projection_matrix * modelview_matrix * vec4(in_Position, 1.0);
 }

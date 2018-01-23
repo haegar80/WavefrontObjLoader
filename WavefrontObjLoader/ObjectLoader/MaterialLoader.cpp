@@ -105,6 +105,16 @@ void MaterialLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTo
 			m_materials.back()->setSpecularColor(rgbValue);
 		}
 	}
+	else if (0 == p_lineTokens[0].compare("Ns"))
+	{
+		if (2 == p_lineTokens.size())
+		{
+			std::stringstream specularExponentStream(p_lineTokens[1]);
+			float specularExponent;
+			specularExponentStream >> specularExponent;
+			m_materials.back()->setSpecularExponent(specularExponent);
+		}
+	}
 	else if (0 == p_lineTokens[0].compare("map_Ka"))
 	{
 		if (2 == p_lineTokens.size())

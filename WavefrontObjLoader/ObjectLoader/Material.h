@@ -51,6 +51,16 @@ public:
 		m_specularColor = p_rgbValue;
 	}
 
+	float getSpecularExponent()
+	{
+		return m_specularExponent;
+	}
+
+	void setSpecularExponent(float p_specularExponent)
+	{
+		m_specularExponent = p_specularExponent;
+	}
+
 	std::string& getAmbientTexturePath()
 	{
 		return m_ambientTexturePath;
@@ -84,9 +94,10 @@ public:
 private:
 	std::string m_name;
 
-	MaterialRGBValue m_ambientColor{ 0.0, 0.0, 0.0 };
-	MaterialRGBValue m_diffuseColor{ 0.0, 0.0, 0.0 };
-	MaterialRGBValue m_specularColor{ 0.0, 0.0, 0.0 };
+	MaterialRGBValue m_ambientColor{ 0.0f, 0.0f, 0.0f };
+	MaterialRGBValue m_diffuseColor{ 0.0f, 0.0f, 0.0f };
+	MaterialRGBValue m_specularColor{ 0.0f, 0.0f, 0.0f };
+	float m_specularExponent{ 20.0f };
 	std::string m_ambientTexturePath{ "" };
 	std::string m_diffuseTexturePath{ "" };
 	std::string m_specularTexturePath{ "" };

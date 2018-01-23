@@ -117,7 +117,7 @@ void WavefrontRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProg
 	p_shaderProgram->setUniformValue("light.AmbientColor", QVector3D(0.0f, 0.3f, 0.0f));
 	p_shaderProgram->setUniformValue("light.DiffuseColor", QVector3D(0.9f, 0.9f, 0.9f));
 	p_shaderProgram->setUniformValue("light.SpecularColor", QVector3D(0.8f, 0.8f, 0.8f));
-	p_shaderProgram->setUniformValue("material.Shininess", 50.f);
+	p_shaderProgram->setUniformValue("material.SpecularExponent", 50.f);
 	int indexOffset = 0;
 
 	for each(std::pair<SubMesh*, int> submeshData in m_subMeshIndicesCount)
@@ -128,7 +128,8 @@ void WavefrontRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProg
 		p_shaderProgram->setUniformValue("material.Kd", QVector3D(rgbValue.R, rgbValue.G, rgbValue.B));
 		rgbValue = submeshData.first->GetMaterial()->getSpecularColor();
 		p_shaderProgram->setUniformValue("material.Ks", QVector3D(rgbValue.R, rgbValue.G, rgbValue.B));
-
+		float specularExponent = submeshData.first->GetMaterial()->getSpecularExponent();
+		p_shaderProgram->setUniformValue("material.SpecularExponent", specularExponent);
 		m_subMeshAmbientTextures.at(submeshData.first)->bind(0);
 		m_subMeshDiffuseTextures.at(submeshData.first)->bind(1);
 		m_subMeshSpecularTextures.at(submeshData.first)->bind(2);
