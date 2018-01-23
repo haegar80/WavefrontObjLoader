@@ -20,7 +20,7 @@ ObjLoader::~ObjLoader()
 	}
 }
  
-void ObjLoader::LoadOBJ(std::string p_fileName)
+void ObjLoader::LoadOBJ(std::string& p_fileName)
 {
 	std::ifstream objFile;
 	ObjTextureCoords texture;

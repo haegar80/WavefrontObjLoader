@@ -10,7 +10,7 @@ GLWidget::GLWidget(ObjLoader& p_objLoader, QWidget* p_parent) : QOpenGLWidget(p_
 	m_currentZoom(-4000.0),
 	m_translateX(-500.0),
 	m_translateY(-300.0),
-	m_cameraAngleX(-30.0),
+	m_cameraAngleX(30.0),
 	m_cameraAngleY(0.0),
 	m_cameraAngleZ(0.0),
 	m_lastXPos(0.0),

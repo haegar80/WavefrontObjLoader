@@ -14,7 +14,7 @@ public:
 			return std::move(m_meshes);
 		}
  
-        void LoadOBJ(std::string p_fileName);
+        void LoadOBJ(std::string& p_fileName);
  
 private:
 	std::vector<Mesh*> m_meshes;
