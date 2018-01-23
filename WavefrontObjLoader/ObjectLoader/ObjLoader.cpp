@@ -20,14 +20,16 @@ ObjLoader::~ObjLoader()
 	}
 }
  
-void ObjLoader::LoadOBJ(std::string& p_fileName)
+void ObjLoader::LoadOBJ(std::string& p_dirPath, std::string& p_fileName)
 {
+	m_currentDirPath = p_dirPath;
+
 	std::ifstream objFile;
 	ObjTextureCoords texture;
  
-	objFile.open(p_fileName.c_str(), std::ios_base::in);
+	objFile.open((p_dirPath + p_fileName).c_str(), std::ios_base::in);
 	if(!objFile) {
-	    std::cout << "File " << p_fileName.c_str() << " could not be opened!!" << std::endl;
+	    std::cout << "File " << (p_dirPath + p_fileName).c_str() << " could not be opened!!" << std::endl;
 		return;
 	}
  
@@ -73,8 +75,7 @@ void ObjLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTokens)
 	{
 		if (2 == p_lineTokens.size())
 		{
-			std::string path = "Wavefront/stove1/" + p_lineTokens[1];
-			m_materialLoader.LoadMaterial(path);
+			m_materialLoader.LoadMaterial(m_currentDirPath, p_lineTokens[1]);
 		}
 	}
 	else if (0 == p_lineTokens[0].compare("usemtl")) // Use this material as current

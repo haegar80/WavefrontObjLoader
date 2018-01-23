@@ -16,13 +16,15 @@ MaterialLoader::~MaterialLoader()
 	}
 }
 
-void MaterialLoader::LoadMaterial(std::string& p_fileName)
+void MaterialLoader::LoadMaterial(std::string& p_dirPath, std::string& p_fileName)
 {
+	m_currentDirPath = p_dirPath;
+
 	std::ifstream mtlFile;
 
-	mtlFile.open(p_fileName.c_str(), std::ios_base::in);
+	mtlFile.open((p_dirPath + p_fileName).c_str(), std::ios_base::in);
 	if (!mtlFile) {
-		std::cout << "File " << p_fileName.c_str() << " could not be opened!!" << std::endl;
+		std::cout << "File " << (p_dirPath + p_fileName).c_str() << " could not be opened!!" << std::endl;
 		return;
 	}
 
@@ -107,7 +109,7 @@ void MaterialLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTo
 	{
 		if (2 == p_lineTokens.size())
 		{
-			std::string path = "Wavefront/stove1/" + p_lineTokens[1];
+			std::string path = m_currentDirPath + p_lineTokens[1];
 			m_materials.back()->setAmbientTexturePath(path);
 		}
 	}
@@ -115,7 +117,7 @@ void MaterialLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTo
 	{
 		if (2 == p_lineTokens.size())
 		{
-			std::string path = "Wavefront/stove1/" + p_lineTokens[1];
+			std::string path = m_currentDirPath + p_lineTokens[1];
 			m_materials.back()->setDiffuseTexturePath(path);
 		}
 	}
@@ -123,7 +125,7 @@ void MaterialLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTo
 	{
 		if (2 == p_lineTokens.size())
 		{
-			std::string path = "Wavefront/stove1/" + p_lineTokens[1];
+			std::string path = m_currentDirPath + p_lineTokens[1];
 			m_materials.back()->setSpecularTexturePath(path);
 		}
 	}
