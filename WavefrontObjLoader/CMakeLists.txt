@@ -28,23 +28,26 @@ add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} "shaders.qrc")
 
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL)
 
-get_target_property(QtCore_location_Release Qt5::Core IMPORTED_LOCATION_RELEASE)
-get_target_property(QtQui_location_Release Qt5::Gui IMPORTED_LOCATION_RELEASE)
-get_target_property(QtWidgets_location_Release Qt5::Widgets IMPORTED_LOCATION_RELEASE)
-get_target_property(QtOpenGL_location_Release Qt5::OpenGL IMPORTED_LOCATION_RELEASE)
-get_target_property(QtCore_location_Debug Qt5::Core IMPORTED_LOCATION_DEBUG)
-get_target_property(QtQui_location_Debug Qt5::Gui IMPORTED_LOCATION_DEBUG)
-get_target_property(QtWidgets_location_Debug Qt5::Widgets IMPORTED_LOCATION_DEBUG)
-get_target_property(QtOpenGL_location_Debug Qt5::OpenGL IMPORTED_LOCATION_DEBUG)
+#Deploy QT DLLs to Output Dir
+IF (WIN32)
+    get_target_property(QtCore_location_Release Qt5::Core IMPORTED_LOCATION_RELEASE)
+    get_target_property(QtQui_location_Release Qt5::Gui IMPORTED_LOCATION_RELEASE)
+    get_target_property(QtWidgets_location_Release Qt5::Widgets IMPORTED_LOCATION_RELEASE)
+    get_target_property(QtOpenGL_location_Release Qt5::OpenGL IMPORTED_LOCATION_RELEASE)
+    get_target_property(QtCore_location_Debug Qt5::Core IMPORTED_LOCATION_DEBUG)
+    get_target_property(QtQui_location_Debug Qt5::Gui IMPORTED_LOCATION_DEBUG)
+    get_target_property(QtWidgets_location_Debug Qt5::Widgets IMPORTED_LOCATION_DEBUG)
+    get_target_property(QtOpenGL_location_Debug Qt5::OpenGL IMPORTED_LOCATION_DEBUG)
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD 
-    COMMAND ${CMAKE_COMMAND} -E copy ${QtCore_location_Release} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-    COMMAND ${CMAKE_COMMAND} -E copy ${QtQui_location_Release} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-    COMMAND ${CMAKE_COMMAND} -E copy ${QtWidgets_location_Release} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-    COMMAND ${CMAKE_COMMAND} -E copy ${QtOpenGL_location_Release} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD 
+        COMMAND ${CMAKE_COMMAND} -E copy ${QtCore_location_Release} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        COMMAND ${CMAKE_COMMAND} -E copy ${QtQui_location_Release} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        COMMAND ${CMAKE_COMMAND} -E copy ${QtWidgets_location_Release} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        COMMAND ${CMAKE_COMMAND} -E copy ${QtOpenGL_location_Release} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 
-    COMMAND ${CMAKE_COMMAND} -E copy ${QtCore_location_Debug} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-    COMMAND ${CMAKE_COMMAND} -E copy ${QtQui_location_Debug} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-    COMMAND ${CMAKE_COMMAND} -E copy ${QtWidgets_location_Debug} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-    COMMAND ${CMAKE_COMMAND} -E copy ${QtOpenGL_location_Debug} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-)
+        COMMAND ${CMAKE_COMMAND} -E copy ${QtCore_location_Debug} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        COMMAND ${CMAKE_COMMAND} -E copy ${QtQui_location_Debug} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        COMMAND ${CMAKE_COMMAND} -E copy ${QtWidgets_location_Debug} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        COMMAND ${CMAKE_COMMAND} -E copy ${QtOpenGL_location_Debug} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    )
+ENDIF()
