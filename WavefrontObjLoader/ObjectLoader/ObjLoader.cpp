@@ -25,7 +25,7 @@ void ObjLoader::LoadOBJ(std::string& p_dirPath, std::string& p_fileName)
     m_currentDirPath = p_dirPath;
 
     std::ifstream objFile;
-	ObjTextureCoords texture{};
+    ObjTextureCoords texture{};
 
     objFile.open((p_dirPath + p_fileName).c_str(), std::ios_base::in);
     if (!objFile) {
@@ -34,7 +34,7 @@ void ObjLoader::LoadOBJ(std::string& p_dirPath, std::string& p_fileName)
     }
 
     while (!objFile.eof()) {
-		char firstChar{ 0 };
+	    char firstChar{ 0 };
         std::string line;
         std::vector<std::string> tokens;
 
