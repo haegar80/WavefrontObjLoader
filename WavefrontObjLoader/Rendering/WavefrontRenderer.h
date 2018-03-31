@@ -50,7 +50,7 @@ private:
 
     std::vector<ObjVertexCoords> getScaledVerticesFromWavefrontModel();
     std::vector<ObjVertexCoords> getNormalsFromWaveFrontModel();
-    std::vector<ObjTextureCoords> getTextureCoordsFromWaveFrontModel();
+    std::vector<ObjTextureCoords> getScaledTextureCoordsFromWaveFrontModel();
 
     void prepareTextures(SubMesh* p_submesh);
 };

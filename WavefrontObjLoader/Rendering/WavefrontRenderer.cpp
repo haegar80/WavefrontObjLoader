@@ -27,15 +27,15 @@ WavefrontRenderer::~WavefrontRenderer()
     m_wavefrontModelTextureBuffer.destroy();
     m_wavefrontModelIndexArrayBuffer.destroy();
 
-    for each(std::pair<SubMesh*, QOpenGLTexture*> texture in m_subMeshAmbientTextures)
+    for (std::pair<SubMesh*, QOpenGLTexture*> texture : m_subMeshAmbientTextures)
     {
         delete texture.second;
     }
-    for each(std::pair<SubMesh*, QOpenGLTexture*> texture in m_subMeshDiffuseTextures)
+    for (std::pair<SubMesh*, QOpenGLTexture*> texture : m_subMeshDiffuseTextures)
     {
         delete texture.second;
     }
-    for each(std::pair<SubMesh*, QOpenGLTexture*> texture in m_subMeshSpecularTextures)
+    for (std::pair<SubMesh*, QOpenGLTexture*> texture : m_subMeshSpecularTextures)
     {
         delete texture.second;
     }
@@ -57,7 +57,7 @@ void WavefrontRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgra
 {
     std::vector<ObjVertexCoords> vertices = getScaledVerticesFromWavefrontModel();
     std::vector<ObjVertexCoords> normals = getNormalsFromWaveFrontModel();
-    std::vector<ObjTextureCoords> textureCoords = getTextureCoordsFromWaveFrontModel();
+    std::vector<ObjTextureCoords> textureCoords = getScaledTextureCoordsFromWaveFrontModel();
 
     m_wavefrontModelVertexBuffer.bind();
     m_wavefrontModelVertexBuffer.allocate(vertices.data(), vertices.size() * sizeof(ObjVertexCoords));
@@ -73,15 +73,15 @@ void WavefrontRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgra
 
     m_subMeshIndicesCount.clear();
 
-    for each(Mesh* mesh in meshes)
+    for (Mesh* mesh : meshes)
     {
-        for each(SubMesh* submesh in mesh->GetSubmeshes())
+        for (SubMesh* submesh : mesh->GetSubmeshes())
         {
             std::vector<unsigned short> indices;
             int numberOfIndicesPerSubmesh = 0;
-            for each(ObjFace face in submesh->GetFaces())
+            for (ObjFace face : submesh->GetFaces())
             {
-                for each(ObjFaceIndices index in face.Indices)
+                for (ObjFaceIndices index : face.Indices)
                 {
                     numberOfIndicesPerSubmesh++;
                     vertexIndices.push_back(index.VertexIndex);
@@ -120,7 +120,7 @@ void WavefrontRenderer::renderWavefrontModels(QOpenGLShaderProgram* p_shaderProg
     p_shaderProgram->setUniformValue("material.SpecularExponent", 50.f);
     int indexOffset = 0;
 
-    for each(std::pair<SubMesh*, int> submeshData in m_subMeshIndicesCount)
+    for (std::pair<SubMesh*, int> submeshData : m_subMeshIndicesCount)
     {
         MaterialRGBValue rgbValue = submeshData.first->GetMaterial()->getAmbientColor();
         p_shaderProgram->setUniformValue("material.Ka", QVector3D(rgbValue.R, rgbValue.G, rgbValue.B));
@@ -149,7 +149,7 @@ std::vector<ObjVertexCoords> WavefrontRenderer::getScaledVerticesFromWavefrontMo
     float minY = 0.0f;
     float maxX = 0.0f;
     float maxY = 0.0f;
-    for each(ObjVertexCoords vertex in vertices)
+    for (ObjVertexCoords vertex : vertices)
     {
         if (vertex.X > maxX)
         {
@@ -184,7 +184,7 @@ std::vector<ObjVertexCoords> WavefrontRenderer::getScaledVerticesFromWavefrontMo
     m_moveToCenterX = minX * m_scaleFactor;
     m_moveToCenterY = minY * m_scaleFactor;
 
-    for each(ObjVertexCoords vertex in vertices)
+    for (ObjVertexCoords vertex : vertices)
     {
         ObjVertexCoords scaledVertex;
         scaledVertex.X = vertex.X * m_scaleFactor - m_moveToCenterX;
@@ -202,13 +202,13 @@ std::vector<ObjVertexCoords> WavefrontRenderer::getNormalsFromWaveFrontModel()
     return mc_objLoader.GetMeshes().back()->GetNormals();
 }
 
-std::vector<ObjTextureCoords> WavefrontRenderer::getTextureCoordsFromWaveFrontModel()
+std::vector<ObjTextureCoords> WavefrontRenderer::getScaledTextureCoordsFromWaveFrontModel()
 {
     std::vector<ObjTextureCoords> scaledTextures;
     // Todo: Only one mesh supported yet
     std::vector<ObjTextureCoords> textures = mc_objLoader.GetMeshes().back()->GetTextures();
 
-    for each(ObjTextureCoords texture in textures)
+    for (ObjTextureCoords texture : textures)
     {
         ObjTextureCoords scaledTexture;
         scaledTexture.U = texture.U * m_scaleFactor - m_moveToCenterX;

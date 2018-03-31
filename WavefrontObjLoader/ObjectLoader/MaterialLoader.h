@@ -12,7 +12,7 @@ public:
 
     void LoadMaterial(std::string& p_dirPath, std::string& p_fileName);
 
-    Material* GetMaterialByName(std::string& p_name);
+    Material* GetMaterialByName(const std::string& p_name);
 
 private:
     std::string m_currentDirPath{ "" };

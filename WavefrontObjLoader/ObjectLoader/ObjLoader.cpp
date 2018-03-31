@@ -14,7 +14,7 @@ ObjLoader::ObjLoader()
 
 ObjLoader::~ObjLoader()
 {
-    for each(Mesh* mesh in m_meshes)
+    for (Mesh* mesh : m_meshes)
     {
         delete mesh;
     }
@@ -172,7 +172,7 @@ void ObjLoader::ReadObjTextureCoords(std::vector<std::string> p_lineTokens)
 void ObjLoader::ReadObjFaceWithNormalsAndTexture(std::vector<std::string> p_lineTokens)
 {
     bool needsCreatingFace = true;
-    for each(std::string token in p_lineTokens)
+    for (std::string token : p_lineTokens)
     {
         std::size_t countSlashes = std::count(token.begin(), token.end(), '/');
         if (countSlashes > 2)
@@ -218,7 +218,7 @@ void ObjLoader::ReadObjFaceWithNormalsAndTexture(std::vector<std::string> p_line
 void ObjLoader::ReadObjFaceWithNormals(std::vector<std::string> p_lineTokens)
 {
     bool needsCreatingFace = true;
-    for each(std::string token in p_lineTokens)
+    for (std::string token : p_lineTokens)
     {
         std::size_t countSlashes = std::count(token.begin(), token.end(), '/');
         if (countSlashes > 2)
@@ -257,7 +257,7 @@ void ObjLoader::ReadObjFaceWithNormals(std::vector<std::string> p_lineTokens)
 void ObjLoader::ReadObjFaceWithTexture(std::vector<std::string> p_lineTokens)
 {
     bool needsCreatingFace = true;
-    for each(std::string token in p_lineTokens)
+    for (std::string token : p_lineTokens)
     {
         std::size_t countSlashes = std::count(token.begin(), token.end(), '/');
         if (countSlashes > 1)
@@ -298,7 +298,7 @@ void ObjLoader::ReadObjFaceVertexOnly(std::vector<std::string> p_lineTokens)
     bool needsCreatingFace = true;
     int vertIndex = 0;
 
-    for each(std::string token in p_lineTokens)
+    for (std::string token : p_lineTokens)
     {
         if (0 == token.compare("f"))
         {

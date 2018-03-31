@@ -10,7 +10,7 @@ MaterialLoader::MaterialLoader()
 
 MaterialLoader::~MaterialLoader()
 {
-    for each(Material* material in m_materials)
+    for (Material* material : m_materials)
     {
         delete material;
     }
@@ -57,10 +57,10 @@ void MaterialLoader::LoadMaterial(std::string& p_dirPath, std::string& p_fileNam
     mtlFile.close();
 }
 
-Material* MaterialLoader::GetMaterialByName(std::string& p_name)
+Material* MaterialLoader::GetMaterialByName(const std::string& p_name)
 {
     Material* foundMaterial{ nullptr };
-    for each (Material* material in m_materials)
+    for (Material* material : m_materials)
     {
         if (0 == material->getName().compare(p_name))
         {

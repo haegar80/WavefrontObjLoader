@@ -12,7 +12,7 @@ Mesh::Mesh(std::string& p_name) :
 
 Mesh::~Mesh()
 {
-    for each(SubMesh* subMesh in m_submeshes)
+    for (SubMesh* subMesh : m_submeshes)
     {
         delete subMesh;
     }
