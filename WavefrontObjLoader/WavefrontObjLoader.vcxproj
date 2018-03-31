@@ -34,7 +34,7 @@
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WindowsAppContainer>false</WindowsAppContainer>
     <ConfigurationType>Application</ConfigurationType>
   </PropertyGroup>
@@ -92,12 +92,12 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
       <AdditionalDependencies>qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5OpenGLd.lib;opengl32.lib;glu32.lib;Qt5Widgetsd.lib;runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\Programme\Qt\Qt5.8.0\5.8\msvc2015_64\lib;C:\Program Files %28x86%29\Windows Kits\8.1\Lib\winv6.3\um\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\Programme\Qt\Qt5.10.1\5.10.1\msvc2017_64\lib;C:\Program Files %28x86%29\Windows Kits\8.1\Lib\winv6.3\um\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <MinimumRequiredVersion />
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;D:\Programme\Qt\5.8.0\5.8\msvc2015_64\include;.\GeneratedFiles\$(ConfigurationName);D:\Programme\Qt\5.8.0\5.8\msvc2015_64\include\QtCore;D:\Programme\Qt\5.8.0\5.8\msvc2015_64\include\QtGui;D:\Programme\Qt\5.8.0\5.8\msvc2015_64\include\QtOpenGL;D:\Programme\Qt\5.7.0\5.7\winrt_x64_msvc2015\include\QtWidgets;D:\Programme\Qt\5.7.0\5.7\winrt_x64_msvc2015\include\QtANGLE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;D:\Programme\Qt\Qt5.10.1\5.10.1\msvc2017_64\include;.\GeneratedFiles\$(ConfigurationName);D:\Programme\Qt\Qt5.10.1\5.10.1\msvc2017_64\include\QtCore;D:\Programme\Qt\Qt5.10.1\5.10.1\msvc2017_64\include\QtGui;D:\Programme\Qt\Qt5.10.1\5.10.1\msvc2017_64\include\QtOpenGL;D:\Programme\Qt\Qt5.10.1\5.10.1\msvc2017_64\include\QtWidgets;D:\Programme\Qt\Qt5.10.1\5.10.1\msvc2017_64\include\QtANGLE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <OmitFramePointers>false</OmitFramePointers>
       <PreprocessorDefinitions>Q_BYTE_ORDER=Q_LITTLE_ENDIAN;X64;__X64__;__x64__;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
