@@ -117,7 +117,7 @@ void MaterialLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTo
     }
     else if (0 == p_lineTokens[0].compare("map_Ka"))
     {
-        if (2 == p_lineTokens.size())
+        if ((2 == p_lineTokens.size()) && (p_lineTokens[1].size() > 0))
         {
             std::string path = m_currentDirPath + p_lineTokens[1];
             m_materials.back()->setAmbientTexturePath(path);
@@ -125,7 +125,7 @@ void MaterialLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTo
     }
     else if (0 == p_lineTokens[0].compare("map_Kd"))
     {
-        if (2 == p_lineTokens.size())
+        if ((2 == p_lineTokens.size()) && (p_lineTokens[1].size() > 0))
         {
             std::string path = m_currentDirPath + p_lineTokens[1];
             m_materials.back()->setDiffuseTexturePath(path);
@@ -133,7 +133,7 @@ void MaterialLoader::EvaluateAndExecuteCommand(std::vector<std::string> p_lineTo
     }
     else if (0 == p_lineTokens[0].compare("map_Ks"))
     {
-        if (2 == p_lineTokens.size())
+        if ((2 == p_lineTokens.size()) && (p_lineTokens[1].size() > 0))
         {
             std::string path = m_currentDirPath + p_lineTokens[1];
             m_materials.back()->setSpecularTexturePath(path);
