@@ -3,3 +3,5 @@
 /WavefrontObjLoader.VC.db
 /WavefrontObjLoader/.vs
 /WavefrontObjLoader/Build/
+/WavefrontObjLoader/Debug
+/WavefrontObjLoader/Win32/Debug

@@ -60,13 +60,13 @@ void WavefrontRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgra
     std::vector<ObjTextureCoords> textureCoords = getScaledTextureCoordsFromWaveFrontModel();
 
     m_wavefrontModelVertexBuffer.bind();
-    m_wavefrontModelVertexBuffer.allocate(vertices.data(), vertices.size() * sizeof(ObjVertexCoords));
+    m_wavefrontModelVertexBuffer.allocate(vertices.data(), static_cast<int>(vertices.size()) * sizeof(ObjVertexCoords));
 
     m_wavefrontModelNormalBuffer.bind();
-    m_wavefrontModelNormalBuffer.allocate(normals.data(), normals.size() * sizeof(ObjVertexCoords));
+    m_wavefrontModelNormalBuffer.allocate(normals.data(), static_cast<int>(normals.size()) * sizeof(ObjVertexCoords));
 
     m_wavefrontModelTextureBuffer.bind();
-    m_wavefrontModelTextureBuffer.allocate(textureCoords.data(), textureCoords.size() * sizeof(ObjTextureCoords));
+    m_wavefrontModelTextureBuffer.allocate(textureCoords.data(), static_cast<int>(textureCoords.size()) * sizeof(ObjTextureCoords));
 
     std::vector<Mesh*> meshes = mc_objLoader.GetMeshes();
     std::vector<unsigned short> vertexIndices;
@@ -93,7 +93,7 @@ void WavefrontRenderer::initWavefrontModels(QOpenGLShaderProgram* p_shaderProgra
         }
     }
     m_wavefrontModelIndexArrayBuffer.bind();
-    m_wavefrontModelIndexArrayBuffer.allocate(vertexIndices.data(), vertexIndices.size() * sizeof(unsigned short));
+    m_wavefrontModelIndexArrayBuffer.allocate(vertexIndices.data(), static_cast<int>(vertexIndices.size()) * sizeof(unsigned short));
 
     m_wavefrontModelVertexBuffer.bind();
     int vertexLocation = p_shaderProgram->attributeLocation("in_Position");
@@ -143,7 +143,17 @@ std::vector<ObjVertexCoords> WavefrontRenderer::getScaledVerticesFromWavefrontMo
 {
     std::vector<ObjVertexCoords> scaledVertices;
     // Todo: Only one mesh supported yet
-    std::vector<ObjVertexCoords> vertices = mc_objLoader.GetMeshes().back()->GetVertices();
+    std::vector<ObjVertexCoords> vertices;
+    int sizeMaxVertices = 0;
+    for (Mesh* mesh : mc_objLoader.GetMeshes())
+    {
+        int numberOfVertices = static_cast<int>(mesh->GetVertices().size());
+        if (numberOfVertices >= sizeMaxVertices)
+        {
+            sizeMaxVertices = numberOfVertices;
+            vertices = mesh->GetVertices();
+        }
+    }
 
     float minX = 0.0f;
     float minY = 0.0f;
