@@ -9,8 +9,8 @@ int main(int argc, char *argv[])
     const int cSize = 1000;
 
     ObjLoader objLoader;
-    std::string wavefrontDir = "Wavefront/stove1/";
-    std::string fileName = "stove1.obj";
+    std::string wavefrontDir = "Wavefront/test/";
+    std::string fileName = "wavefront.obj";
     objLoader.LoadOBJ(wavefrontDir, fileName);
 
     QSurfaceFormat format;

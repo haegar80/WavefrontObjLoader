@@ -159,23 +159,35 @@ std::vector<ObjVertexCoords> WavefrontRenderer::getScaledVerticesFromWavefrontMo
     float minY = 0.0f;
     float maxX = 0.0f;
     float maxY = 0.0f;
+    bool initialValueSet = false;
     for (ObjVertexCoords vertex : vertices)
     {
-        if (vertex.X > maxX)
+        if (!initialValueSet)
         {
             maxX = vertex.X;
-        }
-        else if (vertex.X < minX)
-        {
             minX = vertex.X;
-        }
-        if (vertex.Y > maxY)
-        {
             maxY = vertex.Y;
-        }
-        else if (vertex.Y < minY)
-        {
             minY = vertex.Y;
+            initialValueSet = true;
+        }
+        else
+        {
+            if (vertex.X > maxX)
+            {
+                maxX = vertex.X;
+            }
+            else if (vertex.X < minX)
+            {
+                minX = vertex.X;
+            }
+            if (vertex.Y > maxY)
+            {
+                maxY = vertex.Y;
+            }
+            else if (vertex.Y < minY)
+            {
+                minY = vertex.Y;
+            }
         }
     }
 
